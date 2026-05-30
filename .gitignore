@@ -1,0 +1,28 @@
+# 操作系统
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.bak
+*.log
+
+# 旧备份（不需要版本控制）
+backups/
+
+# 空文件
+新建 文本文档.txt
+
+# Node.js（版本管理脚本用）
+node_modules/
+
+# WorkBuddy 工作文件
+.workbuddy/

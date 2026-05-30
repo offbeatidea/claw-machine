@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D抓娃娃机 - Claw Machine Game</title>
+    <link rel="stylesheet" href="code/css/style.css?v=20260530q">
+    
+    <!-- 第三方库（本地文件，避免CDN被墙） -->
+    <script src="code/libs/three.min.js"></script>
+    <!-- Cannon.js 已移除，使用自研物理引擎 -->
+</head>
+<body>
+    <!-- 版本日志（强制刷新检查）- 每次修改后必须更新时间戳！ -->
+    <script>
+        console.log('%c[HTML] v3.3.0-build20260530q - FORCE REFRESH CHECK', 'color: #ff6b6b; font-weight: bold; font-size: 14px;');
+    </script>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui">
+            <div id="score">得分: 0</div>
+            <div id="attempts">剩余次数: 20</div>
+            <div id="version"></div>
+        </div>
+
+        <button id="configBtn">⚙️ 配置</button>
+        <button id="debugBtn">🐛 位置Debug</button>
+        <button id="labelBtn">🏷️ 模型标签</button>
+
+        <div id="configPanel">
+            <div id="configHeader"></div>
+            <div id="configContent"></div>
+            <div id="configFooter"></div>
+        </div>
+
+        <div id="controls">
+            <button id="btnGrab">抓取</button>
+        </div>
+
+        <div id="gameOver">
+            <h2>游戏结束！</h2>
+            <p id="finalScore">最终得分: 0</p>
+            <button id="restartBtn">重新开始</button>
+        </div>
+
+        <div id="instructions">
+            <h3>操作说明</h3>
+            <p>键盘: WASD/方向键 移动</p>
+            <p>空格/点击按钮: 抓取</p>
+            <p>触摸: 虚拟摇杆 + 抓取按钮</p>
+        </div>
+
+        <!-- 虚拟摇杆 -->
+        <div id="joystickArea">
+            <div id="joystickBase"></div>
+            <div id="joystickThumb"></div>
+        </div>
+
+        <!-- 浮动文字提示 -->
+        <div id="floatText"></div>
+    </div>
+
+    <!-- 项目模块JS（按依赖顺序加载） -->
+    <script src="code/js/utils.js?v=20260530q"></script>
+    <script src="code/js/config.js?v=20260530q"></script>
+    <script src="code/js/physics.js?v=20260530q"></script>
+    <script src="code/js/cabinet.js?v=20260530q"></script>
+    <script src="code/js/claw.js?v=20260530q"></script>
+    <script src="code/js/dolls.js?v=20260530q"></script>
+    <script src="code/js/main.js?v=20260530q"></script>
+</body>
+</html>
