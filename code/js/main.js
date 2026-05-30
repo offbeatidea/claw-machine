@@ -6,7 +6,7 @@
 // ==================== 版本日志（强制刷新检查）====================
 // 【重要】每次修改 index.html 或 code/ 下任何 JS/CSS 文件后，必须更新此时间戳！
 // 格式：v3.2.0-buildYYYYMMDD-HHMM
-console.log('%c[Main] v3.3.0-build20260530q - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
+console.log('%c[Main] v3.3.0-build20260530r - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
 // ================================================================
 
 // ==================== 从window对象获取管理类 ====================
@@ -42,7 +42,7 @@ if (!window.currentConfig) window.currentConfig = {};
 // ==================== 初始化 ====================
 function init() {
     try {
-        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530q...');
+        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530r...');
         
         // 1. Three.js 场景
         scene = new THREE.Scene();
@@ -549,3 +549,24 @@ window.displayVersion = function() {
             versionEl.textContent = inlineVersion;
         });
 };
+
+// ==================== 启动游戏 ====================
+// 等待 DOM 加载完成后初始化
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('%c[Main] DOM 已加载，开始初始化...', 'color: #00ff00; font-weight: bold;');
+    try {
+        init();
+    } catch (e) {
+        console.error('[Main] 初始化异常:', e);
+    }
+});
+
+// 备用：如果 DOMContentLoaded 已触发，直接执行
+if (document.readyState !== 'loading') {
+    console.log('%c[Main] DOM 已就绪（readyState=' + document.readyState + '），直接初始化', 'color: #ffaa00;');
+    setTimeout(() => {
+        if (!window.gameState || window.gameState === 'idle') {
+            init();
+        }
+    }, 100);
+}
