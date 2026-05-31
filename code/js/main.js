@@ -6,7 +6,7 @@
 // ==================== 版本日志（强制刷新检查）====================
 // 【重要】每次修改 index.html 或 code/ 下任何 JS/CSS 文件后，必须更新此时间戳！
 // 格式：v3.2.0-buildYYYYMMDD-HHMM
-console.log('%c[Main] v3.3.0-build20260530s - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
+console.log('%c[Main] v3.3.0-build20260530t - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
 // ================================================================
 
 // ==================== 从window对象获取管理类 ====================
@@ -42,7 +42,7 @@ if (!window.currentConfig) window.currentConfig = {};
 // ==================== 初始化 ====================
 function init() {
     try {
-        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530s...');
+        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530t...');
         
         // 1. Three.js 场景
         scene = new THREE.Scene();

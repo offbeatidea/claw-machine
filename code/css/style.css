@@ -358,21 +358,17 @@ body {
     bottom: 30px;
     left: 30px;
     transform: none;
-    width: 200px;
-    height: 200px;
+    width: 140px;
+    height: 140px;
     z-index: 100;
 }
 
 #joystickBase {
-    position: absolute;
-    width: 140px;
-    height: 140px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     background: rgba(255,255,255,0.45);
     border: 3px solid rgba(255,255,255,0.7);
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
 }
 
 #joystickThumb {
@@ -385,7 +381,7 @@ body {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    /* 移除transition，消除摇杆卡顿 */
+    pointer-events: none;
 }
 
 /* ========== 文字提示特效 ========== */
