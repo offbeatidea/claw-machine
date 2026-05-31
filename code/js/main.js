@@ -6,7 +6,7 @@
 // ==================== 版本日志（强制刷新检查）====================
 // 【重要】每次修改 index.html 或 code/ 下任何 JS/CSS 文件后，必须更新此时间戳！
 // 格式：v3.2.0-buildYYYYMMDD-HHMM
-console.log('%c[Main] v3.3.0-build20260530r - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
+console.log('%c[Main] v3.3.0-build20260530s - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
 // ================================================================
 
 // ==================== 从window对象获取管理类 ====================
@@ -42,7 +42,7 @@ if (!window.currentConfig) window.currentConfig = {};
 // ==================== 初始化 ====================
 function init() {
     try {
-        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530r...');
+        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530s...');
         
         // 1. Three.js 场景
         scene = new THREE.Scene();
@@ -199,6 +199,11 @@ function setupJoystick() {
     const joystickBase = document.getElementById('joystickBase');
     const joystickThumb = document.getElementById('joystickThumb');
     
+    // 初始化：确保摇杆拇指在底座中心
+    joystickThumb.style.left = '50%';
+    joystickThumb.style.top = '50%';
+    joystickThumb.style.transform = 'translate(-50%, -50%)';
+    
     let isDragging = false;
     
     const updateJoystick = (clientX, clientY) => {
@@ -237,8 +242,9 @@ function setupJoystick() {
     document.addEventListener('mouseup', () => {
         if (isDragging) {
             isDragging = false;
-            joystickThumb.style.left = (joystickBase.offsetWidth / 2 - joystickThumb.offsetWidth / 2) + 'px';
-            joystickThumb.style.top = (joystickBase.offsetHeight / 2 - joystickThumb.offsetHeight / 2) + 'px';
+            joystickThumb.style.left = '50%';
+            joystickThumb.style.top = '50%';
+            joystickThumb.style.transform = 'translate(-50%, -50%)';
             joystickInput.x = 0;
             joystickInput.z = 0;
         }
@@ -261,8 +267,9 @@ function setupJoystick() {
     document.addEventListener('touchend', () => {
         if (isDragging) {
             isDragging = false;
-            joystickThumb.style.left = (joystickBase.offsetWidth / 2 - joystickThumb.offsetWidth / 2) + 'px';
-            joystickThumb.style.top = (joystickBase.offsetHeight / 2 - joystickThumb.offsetHeight / 2) + 'px';
+            joystickThumb.style.left = '50%';
+            joystickThumb.style.top = '50%';
+            joystickThumb.style.transform = 'translate(-50%, -50%)';
             joystickInput.x = 0;
             joystickInput.z = 0;
         }
@@ -348,8 +355,8 @@ function startGrab() {
     if (isGrabbing) return;
     isGrabbing = true;
     
-    if (Claw && Claw.startGrab) {
-        Claw.startGrab();
+    if (Claw && Claw.grab) {
+        Claw.grab();
     }
     
     // 0.5秒后重置抓取状态（防止连续触发）
@@ -360,18 +367,18 @@ function startGrab() {
 
 // ==================== 更新UI ====================
 function updateUI() {
-    // v330j 修复：使用 window.score / window.attempts，而非局部变量
+    // v330j 修复：使用 window.gameScore / window.gameAttempts，而非局部变量
     const scoreEl = document.getElementById('score');
     const attemptsEl = document.getElementById('attempts');
-    if (scoreEl) scoreEl.textContent = `得分: ${window.score || 0}`;
-    if (attemptsEl) attemptsEl.textContent = `剩余次数: ${maxAttempts - (window.attempts || 0)}`;
+    if (scoreEl) scoreEl.textContent = `得分: ${window.gameScore || 0}`;
+    if (attemptsEl) attemptsEl.textContent = `剩余次数: ${maxAttempts - (window.gameAttempts || 0)}`;
     
     // 游戏结束判定
-    if (window.attempts >= maxAttempts) {
+    if (window.gameAttempts >= maxAttempts) {
         const gameOverEl = document.getElementById('gameOver');
         const finalScoreEl = document.getElementById('finalScore');
         if (gameOverEl) gameOverEl.style.display = 'block';
-        if (finalScoreEl) finalScoreEl.textContent = `最终得分: ${window.score || 0}`;
+        if (finalScoreEl) finalScoreEl.textContent = `最终得分: ${window.gameScore || 0}`;
     }
 }
 

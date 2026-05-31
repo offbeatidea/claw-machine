@@ -632,10 +632,10 @@ window.Claw = {
 
         // 更新分数
         if (successCount > 0) {
-            if (typeof window.score !== 'undefined') {
-                window.score += successCount;
+            if (typeof window.gameScore !== 'undefined') {
+                window.gameScore += successCount;
             }
-            window.log('[Claw] 得分！+' + successCount + '，总分: ' + window.score);
+            window.log('[Claw] 得分！+' + successCount + '，总分: ' + window.gameScore);
             this.showFloatText('得分 +' + successCount + '！');
         } else {
             window.log('[Claw] 未成功抓到娃娃');
@@ -643,8 +643,8 @@ window.Claw = {
         }
 
         // 更新次数
-        if (typeof window.attempts !== 'undefined') {
-            window.attempts++;
+        if (typeof window.gameAttempts !== 'undefined') {
+            window.gameAttempts++;
         }
 
         // 清理 releasedDolls
