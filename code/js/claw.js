@@ -1,5 +1,5 @@
 // claw.js - 爪子系统（3D钟摆物理 + 多抓模式 + 释放→掉落→判分流程）
-// 版本: v3.3.0-build20260530j
+// 版本: v3.3.0-build20260602d
 // 依赖: THREE, window.CONFIG, window.currentConfig, window.PhysicsEngine, window.DollManager
 //
 // 游戏状态机:
@@ -40,7 +40,7 @@ window.Claw = {
         const f = (config.clawSizeFactor || 100) / 100; // size factor
 
         // --- 底座（沿轨道移动的电机壳体）---
-        const baseGeo = new THREE.CylinderGeometry(0.15 * f, 0.15 * f, 0.3 * f, 16);
+        const baseGeo = new THREE.CylinderGeometry(0.5 * f, 0.5 * f, 0.7 * f, 16);
         const baseMat = new THREE.MeshPhongMaterial({ color: 0x666666, shininess: 80 });
         this.base = new THREE.Mesh(baseGeo, baseMat);
         this.base.castShadow = true;
@@ -57,7 +57,7 @@ window.Claw = {
         window.scene.add(this.base);
 
         // --- 绳子（连接底座和爪子）---
-        const ropeGeo = new THREE.CylinderGeometry(0.015, 0.015, 1, 6);
+        const ropeGeo = new THREE.CylinderGeometry(0.04, 0.04, 1, 6);
         const ropeMat = new THREE.MeshPhongMaterial({ color: 0x444444 });
         this.rope = new THREE.Mesh(ropeGeo, ropeMat);
         window.scene.add(this.rope);
@@ -67,25 +67,25 @@ window.Claw = {
         window.scene.add(this.swing);
 
         // 中心柱
-        const rodGeo = new THREE.CylinderGeometry(0.02 * f, 0.02 * f, 0.15 * f, 8);
+        const rodGeo = new THREE.CylinderGeometry(0.06 * f, 0.06 * f, 0.5 * f, 8);
         const rodMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
         const rod = new THREE.Mesh(rodGeo, rodMat);
-        rod.position.y = -0.075 * f;
+        rod.position.y = -0.25 * f;
         rod.castShadow = true;
         this.swing.add(rod);
 
         // 3 个爪指（Group，支持旋转开合）
         this.fingers = [];
-        const fingerR = 0.06 * f;
+        const fingerR = 0.24 * f;
         for (let i = 0; i < 3; i++) {
             const angle = (i / 3) * Math.PI * 2;
             const fg = new THREE.Group();
             fg.position.set(Math.cos(angle) * fingerR, 0, Math.sin(angle) * fingerR);
 
-            const fGeo = new THREE.BoxGeometry(0.035 * f, 0.18 * f, 0.025 * f);
+            const fGeo = new THREE.BoxGeometry(0.1 * f, 0.7 * f, 0.08 * f);
             const fMat = new THREE.MeshPhongMaterial({ color: 0xbbbbbb });
             const fMesh = new THREE.Mesh(fGeo, fMat);
-            fMesh.position.y = -0.12 * f;
+            fMesh.position.y = -0.4 * f;
             fMesh.castShadow = true;
             fg.add(fMesh);
 
@@ -106,6 +106,31 @@ window.Claw = {
 
         const config = window.currentConfig || {};
         const dt = Math.min(deltaTime, 0.033);
+
+        // 0. 应用速度到位置（爪子移动——之前缺失！）
+        const vel = window.clawVelocity || { x: 0, z: 0 };
+        const maxSpeed = (config.clawMaxSpeed || 5.0) * 0.5;
+        if (Math.abs(vel.x) > 0.001 || Math.abs(vel.z) > 0.001) {
+            this.base.position.x += vel.x * dt * maxSpeed;
+            this.base.position.z += vel.z * dt * maxSpeed;
+
+            // 限制移动范围（机箱内部）
+            const limitX = (config.machineWidth || 4.0) / 2 - 0.5;
+            const limitZ = (config.machineDepth || 4.0) / 2 - 0.5;
+            this.base.position.x = Math.max(-limitX, Math.min(limitX, this.base.position.x));
+            this.base.position.z = Math.max(-limitZ, Math.min(limitZ, this.base.position.z));
+        }
+
+        // 诊断日志（每60帧输出一次）
+        if (!this._logCounter) this._logCounter = 0;
+        this._logCounter++;
+        if (this._logCounter % 60 === 0) {
+            console.log('[Claw.update] base.pos:',
+                'x=' + this.base.position.x.toFixed(2),
+                'z=' + this.base.position.z.toFixed(2),
+                '| vel:', 'x=' + vel.x.toFixed(3), 'z=' + vel.z.toFixed(3),
+                '| state:', window.gameState);
+        }
 
         // 1. 钟摆物理
         this.updatePendulum(dt);
@@ -700,7 +725,7 @@ window.Claw = {
 
     animateClawClose() {
         window.log('[Claw] 爪子闭合');
-        this.fingers.forEach(function(f) { f.rotation.y = 0.3; });
+        this.fingers.forEach(function(f) { f.rotation.y = 0.8; });
     },
 
     animateGrabFail(doll) {
@@ -751,4 +776,4 @@ window.Claw = {
     }
 };
 
-window.log('claw.js v3.3.0-build20260530j 加载完成（三维钟摆物理 + 多抓 + 释放掉落判分 + 浮动文字）');
+window.log('claw.js v3.3.0-build20260602d 加载完成（三维钟摆物理 + 多抓 + 释放掉落判分 + 浮动文字）');

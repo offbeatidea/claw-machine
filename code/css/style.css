@@ -410,17 +410,42 @@ body {
     100% { opacity: 0; transform: translateX(-50%) translateY(-80px); }
 }
 
+/* ========== 触摸控件容器 ========== */
+/* 桌面端：默认不设 position，内部 absolute 元素的 containing block 仍是 #gameContainer */
+#touchControls {
+    z-index: 100;
+}
+
 @media (max-width: 768px) {
-    /* 摇杆区域 - 左下角（区域需大于底座，供拇指移动） */
-    #joystickArea {
-        bottom: 5vw;
+    /* 触摸控件容器 - 移动端 flex 布局 */
+    #touchControls {
+        position: absolute;
+        bottom: 0;
         left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 5vw;
+        pointer-events: none;
+    }
+
+    #touchControls > * {
+        pointer-events: auto;
+    }
+
+    /* 摇杆区域 - 由 flex 布局定位，不再 absolute */
+    #joystickArea {
+        position: relative;
+        bottom: auto;
+        left: auto;
         width: 40vw;
         height: 40vw;
     }
 
     /* 摇杆底座 - 在区域内居中，直径=30vw */
     #joystickBase {
+        position: absolute;
         width: 30vw;
         height: 30vw;
         left: 50%;
@@ -432,15 +457,28 @@ body {
     #joystickThumb {
         width: 10vw;
         height: 10vw;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
     }
 
-    /* 抓取按钮 - 右下角，直径=30vw，边距=5vw(侧) / 10vw(底) */
+    /* 抓取按钮容器 - 由 flex 布局定位，外部尺寸与 joystickArea 一致 */
+    #controls {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        width: 40vw;
+        height: 40vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 抓取按钮 - 在 controls 内居中，直径=30vw */
     #btnGrab {
-        bottom: 10vw;
-        right: 5vw;
+        position: static;
+        bottom: auto;
+        right: auto;
+        left: auto;
+        transform: none;
         width: 30vw;
         height: 30vw;
         font-size: 4vw;

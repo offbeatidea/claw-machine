@@ -2,16 +2,13 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260530q",
-  "full": "v3.3.0-build20260530q",
-  "cache": "20260530q",
-  "date": "2026-05-30",
+  "build": "20260602d",
+  "full": "v3.3.0-build20260602d",
+  "cache": "20260602d",
+  "date": "2026-06-02",
   "changes": [
-    "修复：完整重建 claw.js（文件被截断至217行后恢复）",
-    "新增：多娃娃抓取支持（grabbedDolls 数组替代单一 grabbedDoll）",
-    "新增：释放→掉落→计分流程（releasing 状态等待娃娃落地）",
-    "新增：浮动文字提示（抓到娃娃、强抓/弱抓判定、掉落提示）",
-    "修复：摆动效果在抓取时消失的问题（handleInput 摩擦衰减）",
-    "修复：window.gameCamera 未设置导致浮动文字不可见"
+    "修复：claw.js update() 使用 this.group 但 init() 从未创建，改为 this.base",
+    "修复：main.js 第35行 window.window.clawVelocity 笔误，改为 window.clawVelocity",
+    "保留：joystick 事件触发诊断日志（验证用）"
   ]
 }

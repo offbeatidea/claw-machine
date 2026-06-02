@@ -9,7 +9,7 @@ window.CONFIG = {
     CABINET_HEIGHT: 4.5,     // 机柜高度
     DOLL_SIZE: 0.5,         // 娃娃默认大小
     DOLL_COUNT: 5,           // 娃娃数量
-    CLAW_COLLISION_RADIUS: 0.6, // 爪子碰撞半径
+    CLAW_COLLISION_RADIUS: 0.8, // 爪子碰撞半径（爪子放大后同步增大）
     ROPE_LENGTH: 1.5,         // 绳子长度
     GROUND_Y: 0.5             // 地面高度
 };

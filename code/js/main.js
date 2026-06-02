@@ -6,7 +6,7 @@
 // ==================== 版本日志（强制刷新检查）====================
 // 【重要】每次修改 index.html 或 code/ 下任何 JS/CSS 文件后，必须更新此时间戳！
 // 格式：v3.2.0-buildYYYYMMDD-HHMM
-console.log('%c[Main] v3.3.0-build20260530t - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
+console.log('%c[Main] v3.3.0-build20260602d - FORCE REFRESH CHECK', 'color: #00ff00; font-weight: bold;');
 // ================================================================
 
 // ==================== 从window对象获取管理类 ====================
@@ -32,7 +32,7 @@ let joystickInput = { x: 0, z: 0 };
 let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
     w: false, a: false, s: false, d: false,
     W: false, A: false, S: false, D: false };
-let clawVelocity = { x: 0, y: 0, z: 0 }; // 爪子当前速度
+window.clawVelocity = { x: 0, y: 0, z: 0 }; // 爪子当前速度（必须挂 window，供 claw.js 读取）
 
 // ==================== 默认配置由 ConfigManager 初始化 ====================
 // ConfigManager.init() 会优先从 localStorage 加载已保存配置
@@ -42,7 +42,7 @@ if (!window.currentConfig) window.currentConfig = {};
 // ==================== 初始化 ====================
 function init() {
     try {
-        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260530t...');
+        console.log('[Main] 初始化抓娃娃机 v3.3.0-build20260602d...');
         
         // 1. Three.js 场景
         scene = new THREE.Scene();
@@ -198,37 +198,80 @@ function setupJoystick() {
     const joystickArea = document.getElementById('joystickArea');
     const joystickBase = document.getElementById('joystickBase');
     const joystickThumb = document.getElementById('joystickThumb');
-    
+
     // 初始化：确保摇杆拇指在底座中心
     joystickThumb.style.left = '50%';
     joystickThumb.style.top = '50%';
     joystickThumb.style.transform = 'translate(-50%, -50%)';
-    
+
+    // ========== 诊断日志：摇杆布局检测（初始化后执行）==========
+    (function() {
+        var btnGrab = document.getElementById('btnGrab');
+        var controls = document.getElementById('controls');
+        var screenW = window.innerWidth, screenH = window.innerHeight;
+        var areaRect = joystickArea.getBoundingClientRect();
+        var baseRect = joystickBase.getBoundingClientRect();
+        var thumbRect = joystickThumb.getBoundingClientRect();
+        var btnRect = btnGrab.getBoundingClientRect();
+        var ctrlRect = controls.getBoundingClientRect();
+
+        console.group('%c[诊断] 摇杆+按钮布局（初始化后）', 'color:#ff0;font-weight:bold');
+        console.log('屏幕:', screenW, 'x', screenH);
+        console.log('--- 尺寸对比 ---');
+        console.log('底座CSS:', getComputedStyle(joystickBase).width, 'x', getComputedStyle(joystickBase).height,
+            '| 按钮CSS:', getComputedStyle(btnGrab).width, 'x', getComputedStyle(btnGrab).height,
+            '| 差值:', (parseFloat(getComputedStyle(joystickBase).width) - parseFloat(getComputedStyle(btnGrab).width)).toFixed(1));
+        console.log('容器CSS: area', getComputedStyle(joystickArea).width, 'controls', getComputedStyle(controls).width);
+        console.groupEnd();
+    })();
+    // ========== 诊断日志结束 ==========
+
     let isDragging = false;
-    
+
+    const resetThumb = () => {
+        joystickThumb.style.left = '50%';
+        joystickThumb.style.top = '50%';
+        joystickThumb.style.transform = 'translate(-50%, -50%)';
+    };
+
     const updateJoystick = (clientX, clientY) => {
-        const rect = joystickBase.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const deltaX = clientX - centerX;
-        const deltaY = clientY - centerY;
+        console.log('[Joystick] updateJoystick CALLED', 'clientX:', clientX.toFixed(0), 'clientY:', clientY.toFixed(0));
+        // 底座中心（屏幕坐标）
+        const baseRect = joystickBase.getBoundingClientRect();
+        const baseCX = baseRect.left + baseRect.width / 2;
+        const baseCY = baseRect.top + baseRect.height / 2;
+
+        // 触摸点相对于底座中心的偏移
+        const deltaX = clientX - baseCX;
+        const deltaY = clientY - baseCY;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const maxDistance = rect.width / 2 - joystickThumb.offsetWidth / 2;
-        
-        if (distance < maxDistance) {
-            joystickThumb.style.left = (deltaX + rect.width / 2 - joystickThumb.offsetWidth / 2) + 'px';
-            joystickThumb.style.top = (deltaY + rect.height / 2 - joystickThumb.offsetHeight / 2) + 'px';
-        } else {
-            const angle = Math.atan2(deltaY, deltaX);
-            joystickThumb.style.left = (Math.cos(angle) * maxDistance + rect.width / 2 - joystickThumb.offsetWidth / 2) + 'px';
-            joystickThumb.style.top = (Math.sin(angle) * maxDistance + rect.height / 2 - joystickThumb.offsetHeight / 2) + 'px';
-        }
-        
+
+        const thumbW = joystickThumb.offsetWidth;
+        const thumbH = joystickThumb.offsetHeight;
+        const maxDistance = baseRect.width / 2 - thumbW / 2;
+
+        // 限制在最大范围内
+        const clampedDist = Math.min(distance, maxDistance);
+        const ratio = distance > 0 ? clampedDist / distance : 0;
+        const cx = deltaX * ratio;
+        const cy = deltaY * ratio;
+
+        // thumb 目标屏幕坐标 = 底座中心 + 偏移
+        const targetX = baseCX + cx;
+        const targetY = baseCY + cy;
+
+        // 转换为相对于 joystickArea（thumb 的 containing block）的像素坐标
+        const areaRect = joystickArea.getBoundingClientRect();
+        joystickThumb.style.left = (targetX - areaRect.left - thumbW / 2) + 'px';
+        joystickThumb.style.top = (targetY - areaRect.top - thumbH / 2) + 'px';
+        joystickThumb.style.transform = 'none';
+
         joystickInput.x = clamp(deltaX / maxDistance, -1, 1);
         joystickInput.z = clamp(deltaY / maxDistance, -1, 1);
     };
     
     joystickArea.addEventListener('mousedown', (e) => {
+        console.log('[Joystick] mousedown fired', 'clientX:', e.clientX, 'clientY:', e.clientY);
         isDragging = true;
         updateJoystick(e.clientX, e.clientY);
     });
@@ -242,9 +285,7 @@ function setupJoystick() {
     document.addEventListener('mouseup', () => {
         if (isDragging) {
             isDragging = false;
-            joystickThumb.style.left = '50%';
-            joystickThumb.style.top = '50%';
-            joystickThumb.style.transform = 'translate(-50%, -50%)';
+            resetThumb();
             joystickInput.x = 0;
             joystickInput.z = 0;
         }
@@ -253,6 +294,7 @@ function setupJoystick() {
     // 触摸事件
     joystickArea.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        console.log('[Joystick] touchstart fired', 'touches:', e.touches.length);
         isDragging = true;
         updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
     });
@@ -267,9 +309,7 @@ function setupJoystick() {
     document.addEventListener('touchend', () => {
         if (isDragging) {
             isDragging = false;
-            joystickThumb.style.left = '50%';
-            joystickThumb.style.top = '50%';
-            joystickThumb.style.transform = 'translate(-50%, -50%)';
+            resetThumb();
             joystickInput.x = 0;
             joystickInput.z = 0;
         }
@@ -291,31 +331,39 @@ function handleInput(deltaTime) {
         // v330h 修复：非 idle 时也要衰减速度，否则摆动会突然停止
         const config = window.currentConfig || {};
         const friction = (config.clawFriction || 80) / 100;
-        clawVelocity.x *= friction;
-        clawVelocity.z *= friction;
-        
+        window.clawVelocity.x *= friction;
+        window.clawVelocity.z *= friction;
+
         // 速度很小时直接归零
-        if (Math.abs(clawVelocity.x) < 0.001) clawVelocity.x = 0;
-        if (Math.abs(clawVelocity.z) < 0.001) clawVelocity.z = 0;
+        if (Math.abs(window.clawVelocity.x) < 0.001) window.clawVelocity.x = 0;
+        if (Math.abs(window.clawVelocity.z) < 0.001) window.clawVelocity.z = 0;
         return;
     }
-    
+
     // 读取配置
     const config = window.currentConfig || {};
     const force = config.clawForce || 10.0;
     const maxSpeed = config.clawMaxSpeed || 5.0;
     const friction = (config.clawFriction || 80) / 100;
-    
+
     // 计算输入方向（支持键盘 + 虚拟摇杆）
     let inputX = 0, inputZ = 0;
     if (keys.ArrowLeft || keys.a || keys.A) inputX -= 1;
     if (keys.ArrowRight || keys.d || keys.D) inputX += 1;
     if (keys.ArrowUp || keys.w || keys.W) inputZ -= 1;  // W = 向前（Z-）
     if (keys.ArrowDown || keys.s || keys.S) inputZ += 1;   // S = 向后（Z+）
-    
+
     // 叠加虚拟摇杆输入
     inputX += joystickInput.x;
     inputZ += joystickInput.z;
+
+    // 诊断：输入不为零时打印详细日志
+    if (inputX !== 0 || inputZ !== 0) {
+        console.log('[Input] inputX:', inputX.toFixed(2), 'inputZ:', inputZ.toFixed(2),
+            '| keys:', JSON.stringify({L:keys.ArrowLeft,R:keys.ArrowRight,U:keys.ArrowUp,D:keys.ArrowDown}),
+            '| joy RAW:', JSON.stringify(joystickInput),
+            '| state:', window.gameState);
+    }
     
     // 归一化
     const length = Math.sqrt(inputX * inputX + inputZ * inputZ);
@@ -326,27 +374,27 @@ function handleInput(deltaTime) {
     
     // 应用加速度（按时间增量缩放）
     const dt = deltaTime || (clock ? clock.getDelta() : 0.016);
-    clawVelocity.x += inputX * force * dt;
-    clawVelocity.z += inputZ * force * dt;
+    window.clawVelocity.x += inputX * force * dt;
+    window.clawVelocity.z += inputZ * force * dt;
     
     // 限制最大速度
-    const speed = Math.sqrt(clawVelocity.x * clawVelocity.x + clawVelocity.z * clawVelocity.z);
+    const speed = Math.sqrt(window.clawVelocity.x * window.clawVelocity.x + window.clawVelocity.z * window.clawVelocity.z);
     if (speed > maxSpeed) {
-        clawVelocity.x = (clawVelocity.x / speed) * maxSpeed;
-        clawVelocity.z = (clawVelocity.z / speed) * maxSpeed;
+        window.clawVelocity.x = (window.clawVelocity.x / speed) * maxSpeed;
+        window.clawVelocity.z = (window.clawVelocity.z / speed) * maxSpeed;
     }
     
     // 应用摩擦力（速度衰减）
-    clawVelocity.x *= friction;
-    clawVelocity.z *= friction;
+    window.clawVelocity.x *= friction;
+    window.clawVelocity.z *= friction;
     
     // 速度很小时直接归零
-    if (Math.abs(clawVelocity.x) < 0.001) clawVelocity.x = 0;
-    if (Math.abs(clawVelocity.z) < 0.001) clawVelocity.z = 0;
+    if (Math.abs(window.clawVelocity.x) < 0.001) window.clawVelocity.x = 0;
+    if (Math.abs(window.clawVelocity.z) < 0.001) window.clawVelocity.z = 0;
     
     // 移动爪子基座
     if (Claw && Claw.move) {
-        Claw.move(clawVelocity.x * dt, clawVelocity.z * dt);
+        Claw.move(window.clawVelocity.x * dt, window.clawVelocity.z * dt);
     }
 }
 
@@ -552,7 +600,7 @@ window.displayVersion = function() {
         .catch(err => {
             console.warn('[Version] 无法读取 version.json，使用内联版本号', err.message);
             // 方法2：使用内联版本号（后备方案）
-            const inlineVersion = 'v3.3.0-build20260530j';
+            const inlineVersion = 'v3.3.0-build20260602d';
             versionEl.textContent = inlineVersion;
         });
 };
