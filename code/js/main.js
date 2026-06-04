@@ -24,8 +24,8 @@ let dolls = [];
 // claw.js 中所有状态切换都操作 window.gameState
 // main.js 中也统一读 window.gameState
 window.gameState = window.gameState || 'idle';
-let score = 0;
-let attempts = 0;
+window.gameScore = 0;
+window.gameAttempts = 0;
 let maxAttempts = 10;
 let isGrabbing = false;
 let joystickInput = { x: 0, z: 0 };

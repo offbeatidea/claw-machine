@@ -40,7 +40,7 @@ window.Claw = {
         const f = (config.clawSizeFactor || 100) / 100; // size factor
 
         // --- 底座（沿轨道移动的电机壳体）---
-        const baseGeo = new THREE.CylinderGeometry(0.5 * f, 0.5 * f, 0.7 * f, 16);
+        const baseGeo = new THREE.CylinderGeometry(0.5 * f, 0.5 * f, 0.21 * f, 16);
         const baseMat = new THREE.MeshPhongMaterial({ color: 0x666666, shininess: 80 });
         this.base = new THREE.Mesh(baseGeo, baseMat);
         this.base.castShadow = true;

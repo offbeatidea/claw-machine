@@ -1,4 +1,4 @@
-// dolls.js - 娃娃管理（创建/更新/释放）
+﻿// dolls.js - 娃娃管理（创建/更新/释放）
 // 依赖: THREE, window.CONFIG, window.currentConfig, window.PhysicsEngine, window.Claw
 // 版本: v3.2.1-build20260526-1452 FORCE REFRESH
 
@@ -31,7 +31,7 @@ window.DollManager = {
                 new THREE.BoxGeometry(dollSize, dollSize * 1.2, dollSize),
                 bodyMaterial
             );
-            body.position.set(0, dollSize * 0.6, 0);
+            body.position.set(0, dollSize * 0.5, 0);
             body.castShadow = true;
             doll.add(body);
             
@@ -70,7 +70,7 @@ window.DollManager = {
                 new THREE.CylinderGeometry(0.06 * sizeFactor, 0.06 * sizeFactor, dollSize * 0.8, 8),
                 armMaterial
             );
-            leftArm.position.set(-dollSize * 0.6, dollSize * 0.7, 0);
+            leftArm.position.set(-dollSize * 0.5, dollSize * 0.7, 0);
             leftArm.rotation.z = Math.PI / 6;
             leftArm.castShadow = true;
             doll.add(leftArm);
@@ -79,7 +79,7 @@ window.DollManager = {
                 new THREE.CylinderGeometry(0.06 * sizeFactor, 0.06 * sizeFactor, dollSize * 0.8, 8),
                 armMaterial
             );
-            rightArm.position.set(dollSize * 0.6, dollSize * 0.7, 0);
+            rightArm.position.set(dollSize * 0.5, dollSize * 0.7, 0);
             rightArm.rotation.z = -Math.PI / 6;
             rightArm.castShadow = true;
             doll.add(rightArm);
@@ -90,7 +90,7 @@ window.DollManager = {
             const x = (Math.random() - 0.5) * 2 * halfWidth;
             const z = (Math.random() - 0.5) * 2 * halfDepth;
             const groundY = CONFIG.GROUND_Y || 0.5;
-            doll.position.set(x, groundY + dollSize * 0.6, z);
+            doll.position.set(x, groundY + dollSize * 0.5, z);
             
             // 用户数据
             doll.userData = {
@@ -141,7 +141,7 @@ window.DollManager = {
                 const groundY = CONFIG.GROUND_Y || 0.5;
                 const dollSize = (CONFIG.DOLL_SIZE || 0.5) *
                     (((window.currentConfig && window.currentConfig.dollSizeFactor) || 100) / 100);
-                const yPos = groundY + dollSize * 0.6;  // 站在地面上
+                const yPos = groundY + dollSize * 0.5;  // 站在地面上
                 
                 doll.position.set(
                     (Math.random() - 0.5) * (halfWidth - 0.5),

@@ -16,7 +16,7 @@ window.ConfigManager = {
         // ========== 分组 2：甩爪（依赖爪子移动）==========
         { id: 'pendulumRopeLength', label: '甩爪绳长', group: '甩爪', min: 0.0, max: 1.0, step: 0.1, default: 0.2, unit: '', explanation: '爪子到基座的绳子长度（钟摆臂长）。值越大甩动幅度越大，下降时绳子逐渐放出。' },
         { id: 'pendulumGravity', label: '钟摆重力', group: '甩爪', min: 0.0, max: 20.0, step: 1.0, default: 10.0, unit: '', explanation: '爪子摆动时的重力强度。值越大摆动越快。注意：甩爪效果受爪子移动加速度影响。' },
-        { id: 'pendulumDamping', label: '钟摆阻尼', group: '甩爪', min: 0.0, max: 10.0, step: 0.1, default: 1.0, unit: '', explanation: '爪子摆动的能量损耗。值越大摆动越快停止（0=永久摆动，100=立刻停止）。' },
+        { id: 'pendulumDamping', label: '钟摆阻尼', group: '甩爪', min: 0.1, max: 100.0, step: 1.0, default: 10.0, unit: '', explanation: '爪子摆动的能量损耗。值越大摆动越快停止（0=永久摆动，100=立刻停止）。' },
         { id: 'retractRopeMode', label: '回收终点绳长', group: '甩爪', type: 'select', options: ['pendulum', 'zero'], optionLabels: ['甩爪绳长', '0'], default: 'pendulum', explanation: '爪子上升时绳子回收的终点长度。【甩爪绳长】：全程保持摆动效果，上升至甩爪绳长后判定；【0】：绳子完全收回（爪子贴近底座），弱抓时给娃娃一个向机箱后方随机方向的平抛初速度。' },
 
         // ========== 分组 3：娃娃掉落（依赖爪子位置和甩爪）==========

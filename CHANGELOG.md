@@ -1,6 +1,24 @@
 # 抓娃娃机版本历史
 
-## v3.3.0-build20260530j (2026-05-30)
+## v3.3.0-build20260602d (2026-06-02)
+
+### 修复
+- 娃娃初始 Y 坐标浮空（groundY + dollSize*0.6 → 正确计算为 groundY + radius）
+- 爪子底座厚度调整（0.7→0.21，30%）
+- 强抓/弱抓判定改为爪子级别（所有娃娃结果一致）
+- 得分 UI 和剩余次数 UI 更新逻辑修复（统一使用 window.gameScore/window.gameAttempts）
+- 爪子闭合动画旋转轴修正（rotation.y → rotation.x）
+- 娃娃标签增加坐标信息
+- 地面高度统一（cabinet.js groundY 与 physics.js groundY 一致）
+- 爪子目标投影标记（clawGroundMarker）重建
+- retractRopeMode=zero 时回出口过程中绳子恢复默认长度
+- 配置面板参数实时生效（input 事件触发 applyConfig）
+- 娃娃落地后持续平移问题修复（落地后速度清零）
+- 移除不必要的「松开」浮动文字
+- 强抓提示文字优化（不显示娃娃名）
+
+---
+
 
 ### 修复
 - 完整重建 `claw.js`（文件被截断至217行后恢复，现755行）
