@@ -34,6 +34,14 @@ window.Claw = {
     releasedDolls: [],     // 释放到出口的娃娃数组（待判分）
     dropTaunts: ['没抓住', '掉了', '抓薄了'],
 
+    // ==================== 爪子动画状态 ====================
+    animating: false,
+    animStartTime: 0,
+    animDuration: 0.6,   // U9-4：>0.5秒动画过程
+    animStartRotations: [],  // 每个爪指的开始旋转 [x, x, x]
+    animTargetRotations: [], // 每个爪指的目标旋转 [x, x, x]
+    returnCloseAnimPlayed: false,  // U9-3：防止回到出口时重复播放闭合动画
+
     // ==================== 初始化 ====================
     init() {
         const config = window.currentConfig || {};
@@ -76,13 +84,16 @@ window.Claw = {
 
         // 3 个爪指（Group，支持旋转开合）
         this.fingers = [];
+        this.fingerBaseRots = [];   // U9-1：记录每个爪指的基础 rotation.y
         const fingerR = 0.24 * f;
         for (let i = 0; i < 3; i++) {
             const angle = (i / 3) * Math.PI * 2;
             const fg = new THREE.Group();
             fg.position.set(Math.cos(angle) * fingerR, 0, Math.sin(angle) * fingerR);
-            // 让爪指的本地 X 轴朝向圆心，这样 rotation.x 会让爪指向内合拢
-            fg.rotation.y = -angle;
+            // U9-1 修复：让每个爪指的本地 X 轴朝向圆心
+            // 正确公式：rotation.y = -π/2 - angle（让本地 Z 轴朝圆心方向）
+            fg.rotation.y = -Math.PI / 2 - angle;
+            this.fingerBaseRots.push(-Math.PI / 2 - angle);
 
             const fGeo = new THREE.BoxGeometry(0.1 * f, 0.7 * f, 0.08 * f);
             const fMat = new THREE.MeshPhongMaterial({ color: 0xbbbbbb });
@@ -142,23 +153,30 @@ window.Claw = {
         }
 
         // 诊断日志（每60帧输出一次）
-        if (!this._logCounter) this._logCounter = 0;
-        this._logCounter++;
-        if (this._logCounter % 60 === 0) {
-            console.log('[Claw.update] base.pos:',
-                'x=' + this.base.position.x.toFixed(2),
-                'z=' + this.base.position.z.toFixed(2),
-                '| vel:', 'x=' + vel.x.toFixed(3), 'z=' + vel.z.toFixed(3),
-                '| state:', window.gameState);
-        }
+        // if (!this._logCounter) this._logCounter = 0;
+        // this._logCounter++;
+        // if (this._logCounter % 60 === 0) {
+        //     console.log('[Claw.update] base.pos:',
+        //         'x=' + this.base.position.x.toFixed(2),
+        //         'z=' + this.base.position.z.toFixed(2),
+        //         '| vel:', 'x=' + vel.x.toFixed(3), 'z=' + vel.z.toFixed(3),
+        //         '| state:', window.gameState);
+        // }
 
         // 1. 钟摆物理
         this.updatePendulum(dt);
+        this.updateSwingPosition();
+        this.updateRope();   // 更新绳子（连接底座与爪子）
 
-        // 3.5 更新爪子目标投影标记显隐
+        // 1.2 爪子动画更新（U9-4）
+        this.updateAnimation();
+
+        // 3.5 更新爪子目标投影标记显隐（U6-1：idle/descending/grabbing 都显示）
         if (this.groundMarker) {
-            const showMarker = (window.gameState === 'descending' || window.gameState === 'grabbing');
+            const showMarker = (window.gameState === 'idle' || window.gameState === 'descending' || window.gameState === 'grabbing');
             this.groundMarker.visible = showMarker;
+            // 同步标记位置
+            this.updateSwingPosition();
         }
 
         // 4. 已抓娃娃跟随爪子
@@ -549,11 +567,26 @@ window.Claw = {
         const dz = exitZ - this.base.position.z;
         const dist = Math.sqrt(dx * dx + dz * dz);
 
+        // U8-1：返回过程中逐渐拉长绳子到 pendulumRopeLength
+        const targetRope = config.pendulumRopeLength || 0.2;
+        if (this.currentRopeLength < targetRope) {
+            const extendSpeed = (config.ascendSpeed || 0.5) * 0.8;
+            this.currentRopeLength += extendSpeed * dt;
+            this.currentRopeLength = Math.min(this.currentRopeLength, targetRope);
+        }
+
         if (dist < 0.1) {
             // 到达出口
             this.base.position.x = exitX;
             this.base.position.z = exitZ;
             window.log('[Claw] 已到达出口上方');
+
+            // U9-3 修复：只播放一次闭合动画，避免每帧重置
+            if (!this.returnCloseAnimPlayed) {
+                this.returnCloseAnimPlayed = true;
+                this.animateClawClose();
+                window.log('[Claw] 播放闭合动画（仅一次）');
+            }
 
             if (this.grabbedDolls.length > 0) {
                 this.releaseAllDolls();
@@ -763,15 +796,46 @@ window.Claw = {
         setTimeout(function() { div.remove(); }, 2000);
     },
 
-    // ==================== 爪子动画 ====================
+    // ==================== 爪子动画（U9-4：>0.5秒缓动动画）====================
+    updateAnimation() {
+        if (!this.animating || !this.fingers.length) return;
+
+        const elapsed = (performance.now() / 1000) - this.animStartTime;
+        let t = Math.min(elapsed / this.animDuration, 1.0);
+        // smoothstep 缓动：3t² - 2t³
+        const st = t * t * (3 - 2 * t);
+
+        for (let i = 0; i < this.fingers.length; i++) {
+            const start = this.animStartRotations[i];
+            const target = this.animTargetRotations[i];
+            this.fingers[i].rotation.x = start + (target - start) * st;
+        }
+
+        if (t >= 1.0) {
+            this.animating = false;
+            // 确保最终值精确
+            for (let i = 0; i < this.fingers.length; i++) {
+                this.fingers[i].rotation.x = this.animTargetRotations[i];
+            }
+            window.log('[Claw] 爪子动画完成');
+        }
+    },
+
     animateClawOpen() {
-        window.log('[Claw] 爪子张开');
-        this.fingers.forEach(function(f) { f.rotation.x = 0; });
+        window.log('[Claw] 爪子张开（动画）');
+        this.animating = true;
+        this.animStartTime = performance.now() / 1000;
+        this.animStartRotations = this.fingers.map(f => f.rotation.x);
+        this.animTargetRotations = this.fingers.map(() => 0); // 张开目标：rotation.x = 0
+        window.log('[Claw] 动画启动：start=' + this.animStartRotations.join(',') + ' target=0');
     },
 
     animateClawClose() {
-        window.log('[Claw] 爪子闭合');
-        this.fingers.forEach(function(f) { f.rotation.x = 0.8; });
+        window.log('[Claw] 爪子闭合（动画）');
+        this.animating = true;
+        this.animStartTime = performance.now() / 1000;
+        this.animStartRotations = this.fingers.map(f => f.rotation.x);
+        this.animTargetRotations = this.fingers.map(() => 0.8); // 闭合目标：rotation.x = 0.8
     },
 
     animateGrabFail(doll) {
@@ -802,6 +866,8 @@ window.Claw = {
         if (retractMode !== 'zero') {
             this.currentRopeLength = fullRope;
         }
+        // U9-3：重置回到出口动画标志
+        this.returnCloseAnimPlayed = false;
         this.pendulumAngleX = 0;
         this.pendulumAngleZ = 0;
         this.pendulumVelX = 0;

@@ -7,37 +7,37 @@ window.ConfigManager = {
     configDefinitions: [
         // ========== 分组 1：爪子移动（基础参数）==========
         { id: 'clawForce', label: '爪子推动力', group: '爪子移动', min: 5.0, max: 25.0, step: 2.5, default: 10.0, unit: '', explanation: '按键时爪子的加速度（单位/秒²）。值越大加速越快。建议范围 0.5~3，默认 1.0。注意：此参数与爪子最大速度、摩擦力协同作用。' },
-        { id: 'clawMaxSpeed', label: '爪子最大速度', group: '爪子移动', min: 5.0, max: 25.0, step: 1.0, default: 5.0, unit: '', explanation: '爪子移动的速度上限（单位/秒）。机箱宽度仅8单位，建议范围 0.5~3，默认 1.5。' },
-        { id: 'clawFriction', label: '爪子速度留存', group: '爪子移动', min: 70, max: 90, step: 1, default: 80, unit: '', explanation: '爪子停止输入后，速度衰减的速度。值越大衰减越快（0=无摩擦，100=立刻停止）。实际计算公式：每帧速度保留率 = friction/100。' },
-        { id: 'descendSpeed', label: '下降速度', group: '爪子移动', min: 0.1, max: 2.0, step: 0.1, default: 0.5, unit: '', explanation: '爪子下降的速度。值越小下降越慢，甩动越明显。实际下降时间 ≈ 绳子长度 / 下降速度。' },
-        { id: 'ascendSpeed', label: '上升速度', group: '爪子移动', min: 0.1, max: 2.0, step: 0.1, default: 0.5, unit: '', explanation: '爪子上升的速度。弱抓脱手时，娃娃获得爪子当前速度的一定比例作为初速度。' },
-        { id: 'ropeLength', label: '最大下降深度', group: '爪子移动', min: 0.5, max: 3.0, step: 0.1, default: 1.5, unit: '', explanation: '爪子能下降的最大深度（绳子放出的最大长度）。实际下降距离 = ropeLength。' },
+        { id: 'clawMaxSpeed', label: '爪子最大速度', group: '爪子移动', min: 5.0, max: 25.0, step: 1.0, default: 7.0, unit: '', explanation: '爪子移动的速度上限（单位/秒）。机箱宽度仅8单位，建议范围 0.5~3，默认 1.5。' },
+        { id: 'clawFriction', label: '爪子速度留存', group: '爪子移动', min: 70, max: 90, step: 1, default: 90, unit: '', explanation: '爪子停止输入后，速度衰减的速度。值越大衰减越快（0=无摩擦，100=立刻停止）。实际计算公式：每帧速度保留率 = friction/100。' },
+        { id: 'descendSpeed', label: '下降速度', group: '爪子移动', min: 1.0, max: 5.0, step: 0.5, default: 1.5, unit: '', explanation: '爪子下降的速度。值越小下降越慢，甩动越明显。实际下降时间 ≈ 绳子长度 / 下降速度。' },
+        { id: 'ascendSpeed', label: '上升速度', group: '爪子移动', min: 1.0, max: 5.0, step: 0.5, default: 2.5, unit: '', explanation: '爪子上升的速度。弱抓脱手时，娃娃获得爪子当前速度的一定比例作为初速度。' },
+        { id: 'ropeLength', label: '最大下降深度', group: '爪子移动', min: 0.5, max: 5.0, step: 0.5, default: 3.0, unit: '', explanation: '爪子能下降的最大深度（绳子放出的最大长度）。实际下降距离 = ropeLength。' },
 
         // ========== 分组 2：甩爪（依赖爪子移动）==========
-        { id: 'pendulumRopeLength', label: '甩爪绳长', group: '甩爪', min: 0.0, max: 1.0, step: 0.1, default: 0.2, unit: '', explanation: '爪子到基座的绳子长度（钟摆臂长）。值越大甩动幅度越大，下降时绳子逐渐放出。' },
-        { id: 'pendulumGravity', label: '钟摆重力', group: '甩爪', min: 0.0, max: 20.0, step: 1.0, default: 10.0, unit: '', explanation: '爪子摆动时的重力强度。值越大摆动越快。注意：甩爪效果受爪子移动加速度影响。' },
-        { id: 'pendulumDamping', label: '钟摆阻尼', group: '甩爪', min: 0.1, max: 100.0, step: 1.0, default: 10.0, unit: '', explanation: '爪子摆动的能量损耗。值越大摆动越快停止（0=永久摆动，100=立刻停止）。' },
+        { id: 'pendulumRopeLength', label: '甩爪绳长', group: '甩爪', min: 0.0, max: 1.0, step: 0.1, default: 0.7, unit: '', explanation: '爪子到基座的绳子长度（钟摆臂长）。值越大甩动幅度越大，下降时绳子逐渐放出。' },
+        { id: 'pendulumGravity', label: '钟摆重力', group: '甩爪', min: 0.0, max: 20.0, step: 1.0, default: 9.0, unit: '', explanation: '爪子摆动时的重力强度。值越大摆动越快。注意：甩爪效果受爪子移动加速度影响。' },
+        { id: 'pendulumDamping', label: '钟摆阻尼', group: '甩爪', min: 0.1, max: 100.0, step: 1.0, default: 3.0, unit: '', explanation: '爪子摆动的能量损耗。值越大摆动越快停止（0=永久摆动，100=立刻停止）。' },
         { id: 'retractRopeMode', label: '回收终点绳长', group: '甩爪', type: 'select', options: ['pendulum', 'zero'], optionLabels: ['甩爪绳长', '0'], default: 'pendulum', explanation: '爪子上升时绳子回收的终点长度。【甩爪绳长】：全程保持摆动效果，上升至甩爪绳长后判定；【0】：绳子完全收回（爪子贴近底座），弱抓时给娃娃一个向机箱后方随机方向的平抛初速度。' },
 
         // ========== 分组 3：娃娃掉落（依赖爪子位置和甩爪）==========
-        { id: 'gravity', label: '重力加速度', group: '娃娃掉落', min: -20, max: 0, step: 0.1, default: -9.8, unit: '', explanation: '娃娃掉落时的重力加速度。值越负掉落越快。' },
+        { id: 'gravity', label: '重力加速度', group: '娃娃掉落', min: -20, max: 0, step: 0.1, default: -10.0, unit: '', explanation: '娃娃掉落时的重力加速度。值越负掉落越快。' },
         { id: 'airResistance', label: '空气阻力', group: '娃娃掉落', min: 0, max: 10, step: 0.1, default: 2, unit: '', explanation: '娃娃在空中移动时的速度衰减。值越大空中移动越慢。' },
         { id: 'friction', label: '地面摩擦力', group: '娃娃掉落', min: 0, max: 100, step: 1, default: 90, unit: '', explanation: '娃娃在地面滑动时的速度衰减。值越大滑动距离越短。实际计算公式：每帧速度保留率 = friction/100。' },
         { id: 'dropCheckCount', label: '掉落判断次数', group: '娃娃掉落', min: 1, max: 10, step: 1, default: 3, unit: '次', explanation: '爪子移动过程中，每帧检测娃娃是否掉落的次数。值越高掉落越频繁。' },
-        { id: 'dropChance', label: '掉落率', group: '娃娃掉落', min: 0, max: 100, step: 1, default: 5, unit: '%', explanation: '每次掉落检测时，娃娃从爪子中掉落的概率。' },
+        { id: 'dropChance', label: '掉落率', group: '娃娃掉落', min: 0, max: 100, step: 1, default: 10, unit: '%', explanation: '每次掉落检测时，娃娃从爪子中掉落的概率。' },
 
         // ========== 分组 4：反弹（依赖娃娃掉落）==========
-        { id: 'bounceDamping', label: '反弹阻尼', group: '反弹', min: 0, max: 100, step: 1, default: 60, unit: '', explanation: '娃娃落地反弹时保留的能量百分比。值越大反弹越高（0=不反弹，100=完全弹性碰撞）。' },
+        { id: 'bounceDamping', label: '反弹阻尼', group: '反弹', min: 0, max: 100, step: 1, default: 25, unit: '', explanation: '娃娃落地反弹时保留的能量百分比。值越大反弹越高（0=不反弹，100=完全弹性碰撞）。' },
         { id: 'maxBounces', label: '最大反弹次数', group: '反弹', min: 1, max: 10, step: 1, default: 3, unit: '次', explanation: '娃娃落地后最多反弹几次。达到上限后直接静止。' },
 
         // ========== 分组 5：其他（独立参数）==========
-        { id: 'grabSuccessRate', label: '抓取成功率', group: '其他', min: 0, max: 100, step: 1, default: 50, unit: '%', explanation: '爪子尝试抓取时，成功抓住娃娃的概率。值越高越容易抓到。' },
-        { id: 'strongGrabRate', label: '强抓几率', group: '其他', min: 0, max: 100, step: 1, default: 20, unit: '%', explanation: '抓取成功时，触发"强抓"（牢牢抓住不放）的概率。强抓时娃娃不会在移动中掉落。' },
+        { id: 'grabSuccessRate', label: '抓取成功率', group: '其他', min: 0, max: 100, step: 1, default: 80, unit: '%', explanation: '爪子尝试抓取时，成功抓住娃娃的概率。值越高越容易抓到。' },
+        { id: 'strongGrabRate', label: '强抓几率', group: '其他', min: 0, max: 100, step: 1, default: 50, unit: '%', explanation: '抓取成功时，触发"强抓"（牢牢抓住不放）的概率。强抓时娃娃不会在移动中掉落。' },
         { id: 'dollSizeFactor', label: '娃娃尺寸系数', group: '其他', min: 50, max: 200, step: 5, default: 100, unit: '%', explanation: '控制所有娃娃的显示大小。值越大娃娃越大，越难抓取。' },
         { id: 'clawSizeFactor', label: '爪子尺寸系数', group: '其他', min: 50, max: 200, step: 5, default: 100, unit: '%', explanation: '控制爪子的显示大小。值越大爪子越大，越容易抓到娃娃。' },
         { id: 'clawInitialPos', label: '爪子初始位置', group: '其他', type: 'select', options: ['center', 'exit'], default: 'exit', explanation: '游戏开始时爪子的位置。"center"为机箱中心，"exit"为出口上方。' },
-        { id: 'dollRadius', label: '娃娃碰撞半径', group: '其他', min: 10, max: 100, step: 1, default: 30, unit: '', explanation: '娃娃物理碰撞的检测半径。值越大越容易与其他娃娃发生碰撞。' },
-        { id: 'dollHeight', label: '娃娃高度', group: '其他', min: 20, max: 200, step: 5, default: 60, unit: '', explanation: '娃娃的显示高度。影响娃娃的视觉大小和碰撞盒高度。' },
+        { id: 'dollRadius', label: '娃娃碰撞半径', group: '其他', min: 10, max: 100, step: 1, default: 50, unit: '', explanation: '娃娃物理碰撞的检测半径。值越大越容易与其他娃娃发生碰撞。' },
+        { id: 'dollHeight', label: '娃娃高度', group: '其他', min: 0.0, max: 200.0, step: 5.0, default: 0.0, unit: '', explanation: '娃娃的显示高度。影响娃娃的视觉大小和碰撞盒高度。' },
         { id: 'logLevel', label: '日志等级', group: '其他', type: 'select', options: [0, 1, 2, 3, 4], optionLabels: ['无', '仅错误', '错误+警告', '错误+警告+信息', '全部(含调试)'], default: 2, explanation: '控制控制台日志输出等级。0=无日志，1=仅错误，2=错误+警告，3=错误+警告+信息（默认），4=全部（含调试）。' }
     ],
 

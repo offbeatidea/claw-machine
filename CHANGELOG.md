@@ -1,5 +1,16 @@
 # 抓娃娃机版本历史
 
+## v3.3.0-build20260605e (2026-06-05)
+
+### 修复
+- U9-1：爪指 rotation.y 公式修正为 `-π/2 - angle`，使 rotation.x 旋转时爪指向内合拢（而非同向偏移）
+- U9-3：增加 `returnCloseAnimPlayed` 标志位，防止回到出口上方时闭合动画每帧重置导致不可见
+- U8-1：updateReturning 中逐渐拉长 `currentRopeLength` 到 `pendulumRopeLength`（返回过程中绳子逐渐伸长）
+- U17-2：main.js 初始化顺序调整，`Config.init()` 移至 `Claw.init()` 之前，确保 `pendulumRopeLength` 正确读入
+- U6-1：地面红色圆环在 idle/descending/grabbing 时显示（之前版本已修复，本版本确认）
+
+---
+
 ## v3.3.0-build20260605d (2026-06-05)
 
 ### 修复

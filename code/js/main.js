@@ -88,22 +88,22 @@ function init() {
         Cabinet.createGround();
         console.log('[Main] 机箱创建完成');
         
-        // 8. 爪子
+        // 8. 配置面板（必须在 Claw.init 之前，读取已保存的 pendulumRopeLength）
+        Config.init();
+
+        // 9. 爪子
         console.log('[Main] 开始创建爪子...');
         Claw.init();
         console.log('[Main] 爪子创建完成');
         
-        // 9. 娃娃
+        // 10. 娃娃
         console.log('[Main] 开始创建娃娃...');
         Dolls.init();
         dolls = Dolls.dolls;
         console.log('[Main] 娃娃创建完成，数量:', dolls.length);
         
-        // 10. 事件监听
+        // 11. 事件监听
         setupEventListeners();
-        
-        // 11. 配置面板
-        Config.init();
         
         console.log('[Main] 初始化完成！娃娃数量:', dolls.length);
         
@@ -215,14 +215,15 @@ function setupJoystick() {
         var btnRect = btnGrab.getBoundingClientRect();
         var ctrlRect = controls.getBoundingClientRect();
 
-        console.group('%c[诊断] 摇杆+按钮布局（初始化后）', 'color:#ff0;font-weight:bold');
-        console.log('屏幕:', screenW, 'x', screenH);
-        console.log('--- 尺寸对比 ---');
-        console.log('底座CSS:', getComputedStyle(joystickBase).width, 'x', getComputedStyle(joystickBase).height,
-            '| 按钮CSS:', getComputedStyle(btnGrab).width, 'x', getComputedStyle(btnGrab).height,
-            '| 差值:', (parseFloat(getComputedStyle(joystickBase).width) - parseFloat(getComputedStyle(btnGrab).width)).toFixed(1));
-        console.log('容器CSS: area', getComputedStyle(joystickArea).width, 'controls', getComputedStyle(controls).width);
-        console.groupEnd();
+        // 诊断日志已关闭
+        // console.group('%c[诊断] 摇杆+按钮布局（初始化后）', 'color:#ff0;font-weight:bold');
+        // console.log('屏幕:', screenW, 'x', screenH);
+        // console.log('--- 尺寸对比 ---');
+        // console.log('底座CSS:', getComputedStyle(joystickBase).width, 'x', getComputedStyle(joystickBase).height,
+        //     '| 按钮CSS:', getComputedStyle(btnGrab).width, 'x', getComputedStyle(btnGrab).height,
+        //     '| 差值:', (parseFloat(getComputedStyle(joystickBase).width) - parseFloat(getComputedStyle(btnGrab).width)).toFixed(1));
+        // console.log('容器CSS: area', getComputedStyle(joystickArea).width, 'controls', getComputedStyle(controls).width);
+        // console.groupEnd();
     })();
     // ========== 诊断日志结束 ==========
 
@@ -235,7 +236,7 @@ function setupJoystick() {
     };
 
     const updateJoystick = (clientX, clientY) => {
-        console.log('[Joystick] updateJoystick CALLED', 'clientX:', clientX.toFixed(0), 'clientY:', clientY.toFixed(0));
+        // console.log('[Joystick] updateJoystick CALLED', 'clientX:', clientX.toFixed(0), 'clientY:', clientY.toFixed(0));
         // 底座中心（屏幕坐标）
         const baseRect = joystickBase.getBoundingClientRect();
         const baseCX = baseRect.left + baseRect.width / 2;
@@ -271,7 +272,7 @@ function setupJoystick() {
     };
     
     joystickArea.addEventListener('mousedown', (e) => {
-        console.log('[Joystick] mousedown fired', 'clientX:', e.clientX, 'clientY:', e.clientY);
+        // console.log('[Joystick] mousedown fired', 'clientX:', e.clientX, 'clientY:', e.clientY);
         isDragging = true;
         updateJoystick(e.clientX, e.clientY);
     });
@@ -294,7 +295,7 @@ function setupJoystick() {
     // 触摸事件
     joystickArea.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        console.log('[Joystick] touchstart fired', 'touches:', e.touches.length);
+        // console.log('[Joystick] touchstart fired', 'touches:', e.touches.length);
         isDragging = true;
         updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
     });
@@ -358,12 +359,12 @@ function handleInput(deltaTime) {
     inputZ += joystickInput.z;
 
     // 诊断：输入不为零时打印详细日志
-    if (inputX !== 0 || inputZ !== 0) {
-        console.log('[Input] inputX:', inputX.toFixed(2), 'inputZ:', inputZ.toFixed(2),
-            '| keys:', JSON.stringify({L:keys.ArrowLeft,R:keys.ArrowRight,U:keys.ArrowUp,D:keys.ArrowDown}),
-            '| joy RAW:', JSON.stringify(joystickInput),
-            '| state:', window.gameState);
-    }
+    // if (inputX !== 0 || inputZ !== 0) {
+    //     console.log('[Input] inputX:', inputX.toFixed(2), 'inputZ:', inputZ.toFixed(2),
+    //         '| keys:', JSON.stringify({L:keys.ArrowLeft,R:keys.ArrowRight,U:keys.ArrowUp,D:keys.ArrowDown}),
+    //         '| joy RAW:', JSON.stringify(joystickInput),
+    //         '| state:', window.gameState);
+    // }
     
     // 归一化
     const length = Math.sqrt(inputX * inputX + inputZ * inputZ);
