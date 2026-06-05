@@ -2,17 +2,15 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260605a",
-  "full": "v3.3.0-build20260605a",
-  "cache": "20260605a",
+  "build": "20260605b",
+  "full": "v3.3.0-build20260605b",
+  "cache": "20260605b",
   "date": "2026-06-05",
   "changes": [
-    "修复：强抓/弱抓判定改为爪子级别一次判定",
-    "修复：爪子闭合动画旋转轴修正（rotation.y → rotation.x）",
-    "修复：强抓提示去掉娃娃名",
-    "修复：releaseAllDolls 去掉「松开！」前缀",
-    "修复：配置面板参数实时生效（input 事件触发 applyConfig，节流200ms）",
-    "修复：judgeScore 中强制设置 state='resting' 并清零速度",
-    "修复：娃娃落地后持续平移（onGround 分支 XZ 速度清零）"
+    "修复 U9-1：爪指朝向圆心（fg.rotation.y = -angle）",
+    "修复 U9-2：下抓结束统一播放闭合动画（onGrabComplete 调用 animateClawClose）",
+    "修复 U9-3：张开动画改用 rotation.x（animateClawOpen）",
+    "修复 U17-1：applyConfig 中 idle 状态时实时更新 currentRopeLength",
+    "修复 U17-2：claw.init() 更健壮地读取 pendulumRopeLength 初始值"
   ]
 }

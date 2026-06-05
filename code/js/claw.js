@@ -81,6 +81,8 @@ window.Claw = {
             const angle = (i / 3) * Math.PI * 2;
             const fg = new THREE.Group();
             fg.position.set(Math.cos(angle) * fingerR, 0, Math.sin(angle) * fingerR);
+            // 让爪指的本地 X 轴朝向圆心，这样 rotation.x 会让爪指向内合拢
+            fg.rotation.y = -angle;
 
             const fGeo = new THREE.BoxGeometry(0.1 * f, 0.7 * f, 0.08 * f);
             const fMat = new THREE.MeshPhongMaterial({ color: 0xbbbbbb });
@@ -93,8 +95,12 @@ window.Claw = {
             this.fingers.push(fg);
         }
 
-        // 初始绳长
-        this.currentRopeLength = config.pendulumRopeLength || 0.2;
+        // 初始绳长（必须等待 ConfigManager.init() 完成后读取）
+        const initRope = (config.pendulumRopeLength !== undefined && config.pendulumRopeLength !== null)
+            ? Number(config.pendulumRopeLength)
+            : 0.2;
+        this.currentRopeLength = Math.max(initRope, 0.01);
+        window.log('[Claw] 初始绳长: ' + this.currentRopeLength.toFixed(2));
         this.updateSwingPosition();
 
         window.log('[Claw] 初始化完成（位置: ' + initPos + ', 绳长: ' + this.currentRopeLength.toFixed(2) + '）');
@@ -375,6 +381,8 @@ window.Claw = {
     onGrabComplete() {
         const names = this.grabbedDolls.map(d => d.userData.name).join('、') || '无';
         window.log('[Claw] 抓取完成，开始上升。抓到: ' + names + '（共' + this.grabbedDolls.length + '个）');
+        // 下抓结束，统一播放闭合动作（无论是否抓到娃娃）
+        this.animateClawClose();
         window.gameState = 'ascending';
     },
 
@@ -736,7 +744,7 @@ window.Claw = {
     // ==================== 爪子动画 ====================
     animateClawOpen() {
         window.log('[Claw] 爪子张开');
-        this.fingers.forEach(function(f) { f.rotation.y = 0; });
+        this.fingers.forEach(function(f) { f.rotation.x = 0; });
     },
 
     animateClawClose() {

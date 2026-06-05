@@ -1,5 +1,16 @@
 # 抓娃娃机版本历史
 
+## v3.3.0-build20260605b (2026-06-05)
+
+### 修复
+- U9-1：爪指朝向圆心（fg.rotation.y = -angle，rotation.x 合拢）
+- U9-2：下抓结束统一播放闭合动画（onGrabComplete 调用 animateClawClose）
+- U9-3：张开动画改用 rotation.x（animateClawOpen 与闭合动画反向）
+- U17-1：applyConfig() 中 idle 状态时实时更新 currentRopeLength
+- U17-2：claw.init() 更健壮地读取 pendulumRopeLength 初始值
+
+---
+
 ## v3.3.0-build20260605a (2026-06-05)
 
 ### 修复

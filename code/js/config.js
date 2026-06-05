@@ -311,7 +311,7 @@ window.ConfigManager = {
         if (!window.currentConfig) {
             window.currentConfig = {};
         }
-
+        
         this.configDefinitions.forEach(def => {
             const input = document.getElementById(def.id);
             if (input) {
@@ -319,7 +319,14 @@ window.ConfigManager = {
                 window.currentConfig[def.id] = value;
             }
         });
-
+        
+        // U17 修复：运行状态中改绳长立即生效
+        if (window.Claw && window.gameState === 'idle') {
+            const newRope = window.currentConfig.pendulumRopeLength || 0.2;
+            window.Claw.currentRopeLength = Math.max(newRope, 0.01);
+            window.log('[Config] 绳长已实时更新: ' + window.Claw.currentRopeLength.toFixed(2));
+        }
+        
         window.log('[Config] 配置已应用', window.currentConfig);
         this.saveConfig();
     }
