@@ -261,6 +261,7 @@ function createDollLabel(doll, name) {
      * 返回: THREE.Sprite 标签对象
      */
     // 创建离屏画布（增大高度以容纳两行文字）
+    const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 180;
     const ctx = canvas.getContext('2d');

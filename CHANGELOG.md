@@ -1,5 +1,12 @@
 # 抓娃娃机版本历史
 
+## v3.3.0-build20260605d (2026-06-05)
+
+### 修复
+- U7 回归 bug：`createDollLabel` 中漏掉 `const canvas = document.createElement('canvas')` 导致 `canvas is not defined`
+
+---
+
 ## v3.3.0-build20260605c (2026-06-05)
 
 ### 修复

@@ -2,13 +2,11 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260605c",
-  "full": "v3.3.0-build20260605c",
-  "cache": "20260605c",
+  "build": "20260605d",
+  "full": "v3.3.0-build20260605d",
+  "cache": "20260605d",
   "date": "2026-06-05",
   "changes": [
-    "修复 U6：重建 clawGroundMarker（爪子目标投影标记）",
-    "修复 U7：娃娃标签追加坐标显示（静态，创建时绘制）",
-    "修复 U8：retractRopeMode=zero 时不重置绳长（resetPendulumState 中跳过）"
+    "修复 U7 回归 bug：createDollLabel 中漏掉 const canvas = document.createElement('canvas') 导致 canvas is not defined"
   ]
 }
