@@ -103,6 +103,20 @@ window.Claw = {
         window.log('[Claw] 初始绳长: ' + this.currentRopeLength.toFixed(2));
         this.updateSwingPosition();
 
+        // --- 爪子目标投影标记（地面红色圆环）---
+        const markerGeo = new THREE.RingGeometry(0.15, 0.25, 32);
+        const markerMat = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.7
+        });
+        this.groundMarker = new THREE.Mesh(markerGeo, markerMat);
+        this.groundMarker.rotation.x = -Math.PI / 2; // 平铺在地面上
+        this.groundMarker.position.y = (window.CONFIG.GROUND_Y || 0.5) + 0.01; // 略高于地面
+        this.groundMarker.visible = false;
+        window.scene.add(this.groundMarker);
+
         window.log('[Claw] 初始化完成（位置: ' + initPos + ', 绳长: ' + this.currentRopeLength.toFixed(2) + '）');
     },
 
@@ -141,11 +155,11 @@ window.Claw = {
         // 1. 钟摆物理
         this.updatePendulum(dt);
 
-        // 2. 更新摆动组位置
-        this.updateSwingPosition();
-
-        // 3. 更新绳子视觉
-        this.updateRope();
+        // 3.5 更新爪子目标投影标记显隐
+        if (this.groundMarker) {
+            const showMarker = (window.gameState === 'descending' || window.gameState === 'grabbing');
+            this.groundMarker.visible = showMarker;
+        }
 
         // 4. 已抓娃娃跟随爪子
         if (this.grabbedDolls.length > 0) {
@@ -232,6 +246,14 @@ window.Claw = {
             basePos.y + offsetY,
             basePos.z + offsetZ
         );
+
+        // U6: 同步爪子目标投影标记位置（爪子正下方地面）
+        if (this.groundMarker) {
+            const groundY = (window.CONFIG && window.CONFIG.GROUND_Y) || 0.5;
+            this.groundMarker.position.x = this.swing.position.x;
+            this.groundMarker.position.z = this.swing.position.z;
+            this.groundMarker.position.y = groundY + 0.01;
+        }
     },
 
     // ==================== 绳子视觉更新 ====================
@@ -774,8 +796,12 @@ window.Claw = {
     // ==================== 重置钟摆物理状态（确保每轮首尾一致）====================
     resetPendulumState() {
         const config = window.currentConfig || {};
+        const retractMode = config.retractRopeMode || 'pendulum';
         const fullRope = config.pendulumRopeLength || 0.2;
-        this.currentRopeLength = fullRope;
+        // U8 修复：retractRopeMode=zero 时不重置绳长（上升到顶时已减到 0，保持即可）
+        if (retractMode !== 'zero') {
+            this.currentRopeLength = fullRope;
+        }
         this.pendulumAngleX = 0;
         this.pendulumAngleZ = 0;
         this.pendulumVelX = 0;

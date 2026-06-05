@@ -1,5 +1,14 @@
 # 抓娃娃机版本历史
 
+## v3.3.0-build20260605c (2026-06-05)
+
+### 修复
+- U6：重建 clawGroundMarker（爪子目标投影标记，红色圆环）
+- U7：娃娃标签追加坐标显示（静态，创建时绘制）
+- U8：retractRopeMode=zero 时不重置绳长（resetPendulumState 中跳过）
+
+---
+
 ## v3.3.0-build20260605b (2026-06-05)
 
 ### 修复

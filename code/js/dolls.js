@@ -260,12 +260,11 @@ function createDollLabel(doll, name) {
      * name: string 娃娃名称
      * 返回: THREE.Sprite 标签对象
      */
-    // 创建离屏画布
-    const canvas = document.createElement('canvas');
+    // 创建离屏画布（增大高度以容纳两行文字）
     canvas.width = 256;
-    canvas.height = 128;
+    canvas.height = 180;
     const ctx = canvas.getContext('2d');
-
+    
     // 绘制圆角矩形背景
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.beginPath();
@@ -273,21 +272,28 @@ function createDollLabel(doll, name) {
     ctx.moveTo(r, 8);
     ctx.lineTo(248 - r, 8);
     ctx.quadraticCurveTo(248, 8, 248, 8 + r);
-    ctx.lineTo(248, 120 - r);
-    ctx.quadraticCurveTo(248, 120, 248 - r, 120);
-    ctx.lineTo(r, 120);
-    ctx.quadraticCurveTo(8, 120, 8, 120 - r);
+    ctx.lineTo(248, 172 - r);
+    ctx.quadraticCurveTo(248, 172, 248 - r, 172);
+    ctx.lineTo(r, 172);
+    ctx.quadraticCurveTo(8, 172, 8, 172 - r);
     ctx.lineTo(8, 8 + r);
     ctx.quadraticCurveTo(8, 8, r, 8);
     ctx.closePath();
     ctx.fill();
-
-    // 绘制文字
+    
+    // 绘制名字（第一行）
     ctx.font = 'bold 52px "Microsoft YaHei", "PingFang SC", sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(name, 128, 64);
+    
+    // U7: 绘制坐标（第二行）
+    const pos = doll.position;
+    const coordText = '(x=' + pos.x.toFixed(1) + ', y=' + pos.y.toFixed(1) + ', z=' + pos.z.toFixed(1) + ')';
+    ctx.font = '28px "Microsoft YaHei", "PingFang SC", sans-serif';
+    ctx.fillStyle = '#cccccc';
+    ctx.fillText(coordText, 128, 130);
 
     // 创建纹理
     const texture = new THREE.CanvasTexture(canvas);

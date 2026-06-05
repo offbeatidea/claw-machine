@@ -2,15 +2,13 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260605b",
-  "full": "v3.3.0-build20260605b",
-  "cache": "20260605b",
+  "build": "20260605c",
+  "full": "v3.3.0-build20260605c",
+  "cache": "20260605c",
   "date": "2026-06-05",
   "changes": [
-    "修复 U9-1：爪指朝向圆心（fg.rotation.y = -angle）",
-    "修复 U9-2：下抓结束统一播放闭合动画（onGrabComplete 调用 animateClawClose）",
-    "修复 U9-3：张开动画改用 rotation.x（animateClawOpen）",
-    "修复 U17-1：applyConfig 中 idle 状态时实时更新 currentRopeLength",
-    "修复 U17-2：claw.init() 更健壮地读取 pendulumRopeLength 初始值"
+    "修复 U6：重建 clawGroundMarker（爪子目标投影标记）",
+    "修复 U7：娃娃标签追加坐标显示（静态，创建时绘制）",
+    "修复 U8：retractRopeMode=zero 时不重置绳长（resetPendulumState 中跳过）"
   ]
 }
