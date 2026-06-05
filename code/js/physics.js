@@ -156,6 +156,9 @@ window.PhysicsEngine = {
         if (dollPhysics.onGround && dollPhysics.velocity.y <= 0) {
             dollPhysics.position.y = groundY + dollPhysics.radius;
             dollPhysics.velocity.y = 0;
+            // 落地后 XZ 速度直接清零，防止持续平移
+            dollPhysics.velocity.x = 0;
+            dollPhysics.velocity.z = 0;
             dollPhysics.state = 'resting';
             // 落地后停止旋转
             dollPhysics.rotationSpeed.set(0, 0, 0);

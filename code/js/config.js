@@ -258,13 +258,24 @@ window.ConfigManager = {
             });
         }
 
-        // 为所有range input绑定输入事件
+        // 为所有range input绑定输入事件（实时生效 + 节流）
+        let applyTimer = 0;
         this.configDefinitions.forEach(def => {
             const input = document.getElementById(def.id);
             const valueSpan = document.getElementById(def.id + 'Value');
             if (input && valueSpan) {
                 input.addEventListener('input', (e) => {
                     valueSpan.textContent = e.target.value + def.unit;
+                    // 节流：每200ms最多apply一次，避免高频拖拽时卡顿
+                    const now = Date.now();
+                    if (now - applyTimer > 200) {
+                        applyTimer = now;
+                        this.applyConfig();
+                    }
+                });
+                // 拖拽结束后再apply一次，确保最终值生效
+                input.addEventListener('change', () => {
+                    this.applyConfig();
                 });
             }
         });

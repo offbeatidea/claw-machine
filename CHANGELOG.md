@@ -1,5 +1,17 @@
 # 抓娃娃机版本历史
 
+## v3.3.0-build20260605a (2026-06-05)
+
+### 修复
+- 强抓/弱抓判定改为爪子级别一次判定（U12/P0）
+- 爪子闭合动画旋转轴修正（rotation.y → rotation.x）（U9/P1）
+- 强抓提示去掉娃娃名（U15/P1）
+- releaseAllDolls 去掉「松开！」前缀（U16/P1）
+- 配置面板参数实时生效（input 事件触发 applyConfig，节流200ms）（U17/P1）
+- judgeScore 中强制设置 state='resting' 并清零速度（U11/P1）
+- 娃娃落地后持续平移修复（onGround 分支 XZ 速度清零）（U19/P1）
+
+---
 ## v3.3.0-build20260602d (2026-06-02)
 
 ### 修复

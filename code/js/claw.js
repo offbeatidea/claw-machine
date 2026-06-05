@@ -395,7 +395,7 @@ window.Claw = {
     },
 
     // ==================== 强抓/弱抓判定（上升到顶后调用）====================
-    // 多娃娃模式：逐个判定每个娃娃的强抓/弱抓
+    // 爪子级别一次判定：掷一次骰子决定强/弱，所有娃娃统一结果
     judgeStrongGrab() {
         const config = window.currentConfig || {};
         const strongGrabRate = (config.strongGrabRate || 20) / 100;
@@ -408,14 +408,20 @@ window.Claw = {
             return;
         }
 
-        // 逐个判断每个娃娃
+        // 爪子级别一次判定
+        const isStrong = Math.random() < strongGrabRate;
         const weakDolls = [];
         const strongDolls = [];
-        for (const doll of this.grabbedDolls) {
-            if (Math.random() < strongGrabRate) {
+
+        if (isStrong) {
+            // 强抓：所有娃娃都保留
+            for (const doll of this.grabbedDolls) {
                 strongDolls.push(doll);
                 window.log('[Claw] 强抓！娃娃"' + doll.userData.name + '"');
-            } else {
+            }
+        } else {
+            // 弱抓：所有娃娃都掉落
+            for (const doll of this.grabbedDolls) {
                 weakDolls.push(doll);
                 window.log('[Claw] 弱抓：娃娃"' + doll.userData.name + '" 掉落');
             }
@@ -423,11 +429,11 @@ window.Claw = {
 
         // 浮动文字提示
         if (strongDolls.length > 0) {
-            this.showFloatText('强抓！' + strongDolls.map(d => d.userData.name).join('、'));
+            this.showFloatText('强抓！');
         }
         if (weakDolls.length > 0) {
             const taunt = this.dropTaunts[Math.floor(Math.random() * this.dropTaunts.length)];
-            this.showFloatText(taunt + '！' + weakDolls.map(d => d.userData.name).join('、'));
+            this.showFloatText(taunt + '！');
         }
 
         // 处理弱抓娃娃掉落
@@ -604,7 +610,7 @@ window.Claw = {
 
         // 浮动文字
         const names = this.releasedDolls.map(d => d.userData.name).join('、');
-        this.showFloatText('松开！' + names + ' 掉落中...');
+        this.showFloatText(names + ' 掉落中...');
 
         // 进入 releasing 状态，等待娃娃落地
         window.gameState = 'releasing';
@@ -631,6 +637,16 @@ window.Claw = {
                 if (dist < exitRadius) {
                     successCount++;
                     window.log('[Claw] "' + doll.userData.name + '" 在出口区域，得分！（距离: ' + dist.toFixed(2) + '）');
+
+                    // 强制设置物理状态为 resting，防止落地后持续平移
+                    if (window.PhysicsEngine) {
+                        const physObj = window.PhysicsEngine.getDollPhysics(doll.userData.id);
+                        if (physObj) {
+                            physObj.state = 'resting';
+                            physObj.velocity.set(0, 0, 0);
+                            physObj.onGround = true;
+                        }
+                    }
 
                     // 从场景中删除娃娃模型
                     if (doll.parent) doll.parent.remove(doll);
@@ -725,7 +741,7 @@ window.Claw = {
 
     animateClawClose() {
         window.log('[Claw] 爪子闭合');
-        this.fingers.forEach(function(f) { f.rotation.y = 0.8; });
+        this.fingers.forEach(function(f) { f.rotation.x = 0.8; });
     },
 
     animateGrabFail(doll) {
