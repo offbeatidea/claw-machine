@@ -2,13 +2,15 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260606a",
-  "full": "v3.3.0-build20260606a",
-  "cache": "20260606a",
+  "build": "20260606b",
+  "full": "v3.3.0-build20260606b",
+  "cache": "20260606b",
   "date": "2026-06-06",
   "changes": [
-    "C方案：judgeScore() 中 dist >= exitRadius 时加浮动文字「未落入出口」",
-    "D方案：exitRadius 做成可配置项（默认1.0，范围0.5~3.0）",
-    "回退此前的错误提交（0110eb8）"
+    "落地瞬间立即判分：checkGroundCollision() 调用 scoreDollOnLanding()",
+    "scoreDollOnLanding()：第一次触地立即判分，得分则移除娃娃",
+    "judgeScore() 改造为兜底，releasedDolls 已空则跳过",
+    "checkDollsLanded() 改造：releasedDolls 已空直接进 idle",
+    "physics.js 调用 scoreDollOnLanding 后若返回 true 则跳过反弹逻辑"
   ]
 }

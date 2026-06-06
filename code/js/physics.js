@@ -166,6 +166,15 @@ window.PhysicsEngine = {
         }
 
         if (dollBottom <= groundY && dollPhysics.velocity.y <= 0) {
+            // 第一次落地时，立即通知 Claw 判分（不等反弹结束）
+            if (!dollPhysics.onGround && window.Claw && window.Claw.scoreDollOnLanding) {
+                const removed = window.Claw.scoreDollOnLanding(dollPhysics);
+                if (removed) {
+                    // 娃娃已被移除，跳过后续反弹逻辑
+                    return true;
+                }
+            }
+
             // 落地：将娃娃位置严格吸附到地面上
             dollPhysics.position.y = groundY + dollPhysics.radius;
             dollPhysics.velocity.y = -dollPhysics.velocity.y * this.bounceDamping;

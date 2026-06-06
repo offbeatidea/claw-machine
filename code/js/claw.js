@@ -604,9 +604,11 @@ window.Claw = {
 
     // ==================== 检查释放的娃娃是否全部落地 ====================
     checkDollsLanded() {
+        // releasedDolls 已空（全部被 scoreDollOnLanding 判分处理过），直接进 idle
         if (!this.releasedDolls || this.releasedDolls.length === 0) {
-            window.gameState = 'scoring';
-            this.judgeScore();
+            window.log('[Claw] 所有娃娃已判分，跳过 judgeScore，直接进入 idle');
+            this.resetPendulumState();
+            window.gameState = 'idle';
             return;
         }
 
@@ -624,7 +626,7 @@ window.Claw = {
         }
 
         if (allLanded) {
-            window.log('[Claw] 所有娃娃已落地静止，进入得分判定');
+            window.log('[Claw] 剩余娃娃已落地静止，进入得分判定');
             window.gameState = 'scoring';
             this.judgeScore();
         }
@@ -680,11 +682,91 @@ window.Claw = {
         window.log('[Claw] 进入 releasing 状态（等待娃娃落地）');
     },
 
+    // ==================== 落地瞬间立即判分（由 physics.js checkGroundCollision 调用）====================
+    scoreDollOnLanding(dollPhysics) {
+        let removed = false; // 是否已将娃娃从物理引擎移除
+        // 找到对应的娃娃 mesh
+        const doll = window.DollManager
+            ? window.DollManager.dolls.find(d => d.userData && d.userData.id === dollPhysics.id)
+            : null;
+        if (!doll) {
+            log(LOG_LEVEL.WARN, 'Claw', `scoreDollOnLanding: 找不到娃娃 id=${dollPhysics.id}`);
+            return;
+        }
+
+        const exitX = window.CONFIG.CABINET_WIDTH / 2 - 0.5;
+        const exitZ = window.CONFIG.CABINET_DEPTH / 2 - 0.5;
+        const exitRadius = (window.currentConfig && window.currentConfig.exitRadius !== undefined)
+            ? window.currentConfig.exitRadius : 1.0;
+        const dx = dollPhysics.position.x - exitX;
+        const dz = dollPhysics.position.z - exitZ;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        const inExit = dist < exitRadius;
+
+        if (inExit) {
+            // 得分
+            if (typeof window.gameScore !== 'undefined') {
+                window.gameScore++;
+            }
+            window.log('[Claw] 落地判分: "' + doll.userData.name + '" 在出口区域，得分！（距离: ' + dist.toFixed(2) + '）');
+            this.showFloatText('得分 +1！');
+
+            // 强制静止
+            dollPhysics.state = 'resting';
+            dollPhysics.velocity.set(0, 0, 0);
+            dollPhysics.onGround = true;
+            dollPhysics.rotationSpeed.set(0, 0, 0);
+
+            // 从场景中删除娃娃模型
+            if (doll.parent) doll.parent.remove(doll);
+
+            // 从 DollManager 中移除
+            if (window.DollManager && window.DollManager.dolls) {
+                const idx = window.DollManager.dolls.indexOf(doll);
+                if (idx !== -1) window.DollManager.dolls.splice(idx, 1);
+            }
+
+            // 从物理引擎中移除
+            if (window.PhysicsEngine && window.PhysicsEngine.dolls) {
+                const pIdx = window.PhysicsEngine.dolls.indexOf(dollPhysics);
+                if (pIdx !== -1) window.PhysicsEngine.dolls.splice(pIdx, 1);
+                removed = true; // 标记已移除，physics 需跳过后续处理
+            }
+        } else {
+            window.log('[Claw] 落地判分: "' + doll.userData.name + '" 不在出口区域（距离: ' + dist.toFixed(2) + '）');
+            this.showFloatText('未落入出口 ' + doll.userData.name);
+        }
+
+        // 从 releasedDolls 中移除（已判分）
+        const rIdx = this.releasedDolls.indexOf(doll);
+        if (rIdx !== -1) this.releasedDolls.splice(rIdx, 1);
+
+        // 如果 releasedDolls 已空，提前进入 idle
+        if (this.releasedDolls.length === 0 && window.gameState === 'releasing') {
+            window.log('[Claw] 所有娃娃已判分，提前进入 idle');
+            this.resetPendulumState();
+            window.gameState = 'idle';
+        }
+
+        return removed; // true = 娃娃已被移除，physics 需跳过后续处理
+    },
+
     // ==================== 得分判定 ====================
     judgeScore() {
         if (window.gameState !== 'scoring') return;
 
-        // 只统计本轮释放的娃娃中在出口区域的
+        // 所有娃娃已被 scoreDollOnLanding() 判分并处理完毕
+        if (!this.releasedDolls || this.releasedDolls.length === 0) {
+            window.log('[Claw] judgeScore: releasedDolls 已空，跳过');
+            if (typeof window.gameAttempts !== 'undefined') {
+                window.gameAttempts++;
+            }
+            this.resetPendulumState();
+            window.gameState = 'idle';
+            return;
+        }
+
+        // 兜底：处理未被 scoreDollOnLanding 覆盖的娃娃（理论上不会进入此分支）
         let successCount = 0;
         const exitX = window.CONFIG.CABINET_WIDTH / 2 - 0.5;
         const exitZ = window.CONFIG.CABINET_DEPTH / 2 - 0.5;
@@ -724,8 +806,8 @@ window.Claw = {
                     if (window.PhysicsEngine && window.PhysicsEngine.dolls) {
                         const physObj = window.PhysicsEngine.getDollPhysics(doll.userData.id);
                         if (physObj) {
-                            const pidx = window.PhysicsEngine.dolls.indexOf(physObj);
-                            if (pidx !== -1) window.PhysicsEngine.dolls.splice(pidx, 1);
+                            const pIdx = window.PhysicsEngine.dolls.indexOf(physObj);
+                            if (pIdx !== -1) window.PhysicsEngine.dolls.splice(pIdx, 1);
                         }
                     }
                 } else {
