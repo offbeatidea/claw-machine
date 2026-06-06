@@ -688,7 +688,7 @@ window.Claw = {
         let successCount = 0;
         const exitX = window.CONFIG.CABINET_WIDTH / 2 - 0.5;
         const exitZ = window.CONFIG.CABINET_DEPTH / 2 - 0.5;
-        const exitRadius = 1.0;
+        const exitRadius = (window.currentConfig && window.currentConfig.exitRadius !== undefined) ? window.currentConfig.exitRadius : 1.0;
 
         if (this.releasedDolls && this.releasedDolls.length > 0) {
             for (const doll of this.releasedDolls) {
@@ -730,6 +730,8 @@ window.Claw = {
                     }
                 } else {
                     window.log('[Claw] "' + doll.userData.name + '" 不在出口区域（距离: ' + dist.toFixed(2) + '）');
+                    // C方案：未落入出口，显示浮动文字
+                    this.showFloatText('未落入出口 ' + doll.userData.name);
                 }
             }
         }

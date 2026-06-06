@@ -38,6 +38,7 @@ window.ConfigManager = {
         { id: 'clawInitialPos', label: '爪子初始位置', group: '其他', type: 'select', options: ['center', 'exit'], default: 'exit', explanation: '游戏开始时爪子的位置。"center"为机箱中心，"exit"为出口上方。' },
         { id: 'dollRadius', label: '娃娃碰撞半径', group: '其他', min: 10, max: 100, step: 1, default: 50, unit: '', explanation: '娃娃物理碰撞的检测半径。值越大越容易与其他娃娃发生碰撞。' },
         { id: 'dollHeight', label: '娃娃高度', group: '其他', min: 0.0, max: 200.0, step: 5.0, default: 0.0, unit: '', explanation: '娃娃的显示高度。影响娃娃的视觉大小和碰撞盒高度。' },
+        { id: 'exitRadius', label: '出口判定半径', group: '其他', min: 0.5, max: 3.0, step: 0.1, default: 1.0, unit: '', explanation: '判定娃娃是否落入出口的半径。娃娃落地位置距出口中心小于此值时得分。值越大越容易得分。' },
         { id: 'logLevel', label: '日志等级', group: '其他', type: 'select', options: [0, 1, 2, 3, 4], optionLabels: ['无', '仅错误', '错误+警告', '错误+警告+信息', '全部(含调试)'], default: 2, explanation: '控制控制台日志输出等级。0=无日志，1=仅错误，2=错误+警告，3=错误+警告+信息（默认），4=全部（含调试）。' }
     ],
 

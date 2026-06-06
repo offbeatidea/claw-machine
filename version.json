@@ -2,15 +2,13 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260605e",
-  "full": "v3.3.0-build20260605e",
-  "cache": "20260605e",
-  "date": "2026-06-05",
+  "build": "20260606a",
+  "full": "v3.3.0-build20260606a",
+  "cache": "20260606a",
+  "date": "2026-06-06",
   "changes": [
-    "U9-1 修复：爪指 rotation.y 改回正确公式（-π/2 - angle），使 rotation.x 旋转时爪指向内合拢",
-    "U9-3 修复：updateReturning 中增加 returnCloseAnimPlayed 标志，防止闭合动画每帧重置",
-    "U8-1 修复：updateReturning 中逐渐拉长 currentRopeLength 到 pendulumRopeLength",
-    "U17-2 修复：main.js 初始化顺序调整，Config.init() 移至 Claw.init() 之前，确保 pendulumRopeLength 正确读取",
-    "U6-1 保持：地面红色圆环在 idle/descending/grabbing 时显示"
+    "C方案：judgeScore() 中 dist >= exitRadius 时加浮动文字「未落入出口」",
+    "D方案：exitRadius 做成可配置项（默认1.0，范围0.5~3.0）",
+    "回退此前的错误提交（0110eb8）"
   ]
 }
