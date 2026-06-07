@@ -82,7 +82,7 @@ window.CabinetManager = {
             groundMaterial
         );
         ground.rotation.x = -Math.PI / 2;
-        ground.position.y = -0.31;
+        ground.position.y = (CONFIG.GROUND_Y != null ? CONFIG.GROUND_Y : 0.0);
         ground.receiveShadow = true;
         window.scene.add(ground);
 
@@ -96,7 +96,7 @@ window.CabinetManager = {
                 side: THREE.DoubleSide
             })
         );
-        exitMarker.position.set(CONFIG.CABINET_WIDTH/2 - 0.5, 0.01, CONFIG.CABINET_DEPTH/2 - 0.5);
+        exitMarker.position.set(CONFIG.CABINET_WIDTH/2 - 0.5, (CONFIG.GROUND_Y != null ? CONFIG.GROUND_Y : 0.0) + 0.01, CONFIG.CABINET_DEPTH/2 - 0.5);
         exitMarker.rotation.x = -Math.PI / 2;
         this.exitMarker = exitMarker;
         window.scene.add(exitMarker);

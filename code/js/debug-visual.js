@@ -1,6 +1,10 @@
 // debug-visual.js - 调试可视化模块
 // 功能: 出口范围可视化、地面可视化、娃娃碰撞范围、娃娃移动轨迹
-// 版本: v3.3.0-build20260607a
+// 版本: v3.3.2-build20260607a
+
+// 本次更新：
+// 1. groundY 默认值改为从 CONFIG.GROUND_Y 读取（支持0.0）
+// 2. 统一地面Y值
 //
 // 使用方式:
 //   window.toggleDebugVisuals()  - 切换显示/隐藏
@@ -44,7 +48,7 @@
         const CONFIG = window.CONFIG || {};
         const exitX = (CONFIG.CABINET_WIDTH || 3.2) / 2 - 0.5;
         const exitZ = (CONFIG.CABINET_DEPTH || 3.2) / 2 - 0.5;
-        const groundY = (CONFIG.GROUND_Y || 0.5);
+        const groundY = (CONFIG.GROUND_Y != null) ? CONFIG.GROUND_Y : 0.0;
         const exitRadius = (window.currentConfig && window.currentConfig.exitRadius !== undefined)
             ? window.currentConfig.exitRadius : 1.0;
 

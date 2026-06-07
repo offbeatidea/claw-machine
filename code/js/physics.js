@@ -1,12 +1,12 @@
 // physics.js - 自研轻量级物理引擎（不依赖Cannon.js）
 // 依赖: window.CONFIG, window.currentConfig
 // 功能: 抛物线运动、娃娃碰撞检测、地面/堆叠碰撞、反弹
-// 版本: v3.2.1-build20260527-1400 FORCE REFRESH
-//
-// 本次修复：
-// 1. 娃娃落地后 rotationSpeed 清零，防止不停翻转
-// 2. 娃娃落地后添加旋转阻尼，旋转逐渐停止
-// 3. 修复 checkGroundCollision 中 onGround 重复设置问题
+// 版本: v3.3.2-build20260607b
+
+// 本次更新：
+// 1. 地面Y统一：移除硬编码 groundY，改为读取 window.CONFIG.GROUND_Y
+// 2. 出口区域实时检测：checkExitZone()，任意位置/状态进入出口圆柱体即判分移除
+// 3. 娃娃落地后 rotationSpeed 清零 + 旋转阻尼
 
 window.PhysicsEngine = {
     gravity: -9.8,           // 重力加速度 (m/s²)
@@ -22,7 +22,7 @@ window.PhysicsEngine = {
     dollMaxSpeed: 15.0,         // 娃娃最大速度上限（任何轴分量不超过此值）
     cabinetMinEscapeSpeed: 0.5,  // 贴墙时最小脱离速度（防止抖动）
 
-    // ==================== 初始化 ====================
+    // 地面高度改为从 CONFIG.GROUND_Y 读取，不再此处硬编码
     init() {
         this.dolls = [];
         this.gravity = -9.8;
@@ -236,7 +236,7 @@ window.PhysicsEngine = {
 
     // ==================== 地面碰撞检测 ====================
     checkGroundCollision(dollPhysics) {
-        const groundY = this.groundY;
+        const groundY = (window.CONFIG && window.CONFIG.GROUND_Y != null) ? window.CONFIG.GROUND_Y : 0.0;
         const dollBottom = dollPhysics.position.y - dollPhysics.radius;
 
         // 已在地面上且速度向下或为零 → 直接吸附到地面
@@ -293,7 +293,34 @@ window.PhysicsEngine = {
         return false;
     },
 
-    // ==================== 娃娃-娃娃碰撞检测 ====================
+    // ==================== 出口区域实时检测 ====================
+    checkExitZone(dollPhysics) {
+        // 被抓取的不检测
+        if (dollPhysics.state === 'grabbed') return;
+        // 已移除的跳过
+        if (dollPhysics._removed) return;
+
+        const CONFIG = window.CONFIG || {};
+        const exitX = (CONFIG.CABINET_WIDTH || 3.2) / 2 - 0.5;
+        const exitZ = (CONFIG.CABINET_DEPTH || 3.2) / 2 - 0.5;
+        const exitRadius = (window.currentConfig && window.currentConfig.exitRadius !== undefined)
+            ? window.currentConfig.exitRadius : 1.0;
+        const groundY = (CONFIG.GROUND_Y != null) ? CONFIG.GROUND_Y : 0.0;
+        const exitZoneTop = groundY + 0.1; // 出口判定区域顶部（比地面高0.1）
+
+        const dx = dollPhysics.position.x - exitX;
+        const dz = dollPhysics.position.z - exitZ;
+        const distXZ = Math.sqrt(dx * dx + dz * dz);
+
+        if (distXZ < exitRadius && dollPhysics.position.y >= groundY && dollPhysics.position.y <= exitZoneTop) {
+            // 立即通知 Claw 判分移除
+            if (window.Claw && window.Claw.scoreDollOnExitZone) {
+                window.Claw.scoreDollOnExitZone(dollPhysics);
+            }
+        }
+    },
+
+    // ==================== 娃娃-娃娃碰撞检测（已关闭）====================
     checkDollCollision(dollAPhysics, dollBPhysics) {
         if (dollAPhysics.state === 'grabbed' || dollBPhysics.state === 'grabbed') {
             return false;
@@ -359,8 +386,8 @@ window.PhysicsEngine = {
             dollPhysics.position.y += dollPhysics.velocity.y * dt;
             dollPhysics.position.z += dollPhysics.velocity.z * dt;
 
-            // 2.5 仓壁碰撞检测
-            this.checkCabinetCollision(dollPhysics);
+            // 2.5 出口区域实时检测（优先级高于地面）
+            this.checkExitZone(dollPhysics);
 
             // 3. 更新旋转（带阻尼，逐渐停止）
             if (dollPhysics.mesh && dollPhysics.state !== 'resting') {
@@ -383,7 +410,10 @@ window.PhysicsEngine = {
             // 4. 地面碰撞检测
             this.checkGroundCollision(dollPhysics);
 
-            // 5. 娃娃-娃娃碰撞检测【已关闭】
+            // 5. 出口区域实时检测（任意位置/状态均生效）
+            this.checkExitZone(dollPhysics);
+
+            // 6. 娃娃-娃娃碰撞检测【已关闭】
             // 原因：娃娃间碰撞导致连锁反应，所有娃娃被弹飞出机箱
             // 如需重新启用，取消下方注释即可
             // this.dolls.forEach(otherPhysics => {

@@ -1,5 +1,5 @@
 // claw.js - 爪子系统（3D钟摆物理 + 多抓模式 + 释放→掉落→判分流程）
-// 版本: v3.3.0-build20260602d
+// 版本: v3.3.2-build20260607b
 // 依赖: THREE, window.CONFIG, window.currentConfig, window.PhysicsEngine, window.DollManager
 //
 // 游戏状态机:
@@ -11,6 +11,7 @@
 //   - 弱抓掉落: weakGrabDolls 数组，物理引擎接管
 //   - 释放流程: 松开爪子→自由掉落→等待落地→判定得分+删除模型
 //   - 浮动文字: 抓到、强/弱抓、掉落、得分
+//   - 出口区域实时判分: scoreDollOnExitZone() + 得分特效 playScoreEffect()
 
 window.Claw = {
     // ==================== 3D 组件 ====================
@@ -760,6 +761,126 @@ window.Claw = {
         }
 
         return removed; // true = 娃娃已被移除，physics 需跳过后续处理
+    },
+
+    // ==================== 出口区域实时判分（任意位置/状态进入出口即触发）====================
+    scoreDollOnExitZone(dollPhysics) {
+        if (dollPhysics._removed) return; // 已移除，跳过
+
+        const doll = window.DollManager
+            ? window.DollManager.dolls.find(d => d.userData && d.userData.id === dollPhysics.id)
+            : null;
+        if (!doll) {
+            log(LOG_LEVEL.WARN, 'Claw', `scoreDollOnExitZone: 找不到娃娃 id=${dollPhysics.id}`);
+            return;
+        }
+
+        // 得分
+        if (typeof window.gameScore !== 'undefined') {
+            window.gameScore++;
+        }
+        window.log('[Claw] 出口区域实时判分: "' + doll.userData.name + '" 得分！');
+        this.showFloatText('得分 +1！');
+
+        // 在移除点播放得分特效
+        this.playScoreEffect(doll.position.clone());
+
+        // 标记已移除，防止 physics 重复处理
+        dollPhysics._removed = true;
+
+        // 强制静止
+        dollPhysics.state = 'resting';
+        dollPhysics.velocity.set(0, 0, 0);
+        dollPhysics.onGround = true;
+        dollPhysics.rotationSpeed.set(0, 0, 0);
+
+        // 从场景中删除娃娃模型
+        if (doll.parent) doll.parent.remove(doll);
+
+        // 从 DollManager 中移除
+        if (window.DollManager && window.DollManager.dolls) {
+            const idx = window.DollManager.dolls.indexOf(doll);
+            if (idx !== -1) window.DollManager.dolls.splice(idx, 1);
+        }
+
+        // 从物理引擎中移除
+        if (window.PhysicsEngine && window.PhysicsEngine.dolls) {
+            const pIdx = window.PhysicsEngine.dolls.indexOf(dollPhysics);
+            if (pIdx !== -1) window.PhysicsEngine.dolls.splice(pIdx, 1);
+        }
+
+        // 从各状态数组中清理
+        const rIdx = this.releasedDolls.indexOf(doll);
+        if (rIdx !== -1) this.releasedDolls.splice(rIdx, 1);
+        const gIdx = this.grabbedDolls.indexOf(doll);
+        if (gIdx !== -1) this.grabbedDolls.splice(gIdx, 1);
+        const wIdx = this.weakGrabDolls.indexOf(doll);
+        if (wIdx !== -1) this.weakGrabDolls.splice(wIdx, 1);
+
+        window.log('[Claw] scoreDollOnExitZone 完成，娃娃已从所有系统移除');
+    },
+
+    // ==================== 播放得分特效（金色粒子+文字）====================
+    playScoreEffect(position) {
+        if (!position) return;
+        const camera = window.gameCamera;
+        if (!camera) return;
+
+        // 3D 坐标投影到屏幕
+        const vec = position.clone().project(camera);
+        const x = (vec.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-vec.y * 0.5 + 0.5) * window.innerHeight;
+
+        // "+1" 金色文字
+        const div = document.createElement('div');
+        div.textContent = '+1';
+        div.style.cssText =
+            'position:fixed;' +
+            'left:' + x + 'px;' +
+            'top:' + y + 'px;' +
+            'transform:translate(-50%,-50%);' +
+            'color:#ffd700;' +
+            'font-size:52px;font-weight:bold;' +
+            'text-shadow:0 0 20px rgba(255,215,0,0.9), 0 0 40px rgba(255,215,0,0.5);' +
+            'pointer-events:none;z-index:9999;' +
+            'transition:all 1.8s ease-out;opacity:1;';
+        document.body.appendChild(div);
+
+        requestAnimationFrame(function() {
+            div.style.top = (y - 130) + 'px';
+            div.style.fontSize = '80px';
+            div.style.opacity = '0';
+        });
+        setTimeout(function() { div.remove(); }, 2200);
+
+        // 粒子爆发（12个金色粒子）
+        for (let i = 0; i < 12; i++) {
+            const p = document.createElement('div');
+            const angle = (i / 12) * Math.PI * 2;
+            const dist = 35 + Math.random() * 40;
+            const endX = x + Math.cos(angle) * dist;
+            const endY = y + Math.sin(angle) * dist;
+            const colors = ['#ffd700', '#ffe066', '#ff6b6b', '#4ecdc4'];
+            p.style.cssText =
+                'position:fixed;' +
+                'left:' + x + 'px;top:' + y + 'px;' +
+                'width:10px;height:10px;border-radius:50%;' +
+                'background:' + colors[i % 4] + ';' +
+                'pointer-events:none;z-index:9998;' +
+                'transition:all 0.9s ease-out;opacity:1;';
+            document.body.appendChild(p);
+            (function(el, tx, ty) {
+                requestAnimationFrame(function() {
+                    el.style.left = tx + 'px';
+                    el.style.top = ty + 'px';
+                    el.style.opacity = '0';
+                    el.style.transform = 'scale(0.3)';
+                });
+                setTimeout(function() { el.remove(); }, 1100);
+            })(p, endX, endY);
+        }
+
+        window.log('[Claw] 得分特效播放 pos:(' + position.x.toFixed(2) + ',' + position.y.toFixed(2) + ',' + position.z.toFixed(2) + ')');
     },
 
     // ==================== 得分判定 ====================

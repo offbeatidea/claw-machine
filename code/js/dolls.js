@@ -1,6 +1,11 @@
-﻿// dolls.js - 娃娃管理（创建/更新/释放）
+// dolls.js - 娃娃管理（创建/更新/释放）
 // 依赖: THREE, window.CONFIG, window.currentConfig, window.PhysicsEngine, window.Claw
-// 版本: v3.2.1-build20260526-1452 FORCE REFRESH
+// 版本: v3.3.2-build20260607b
+
+// 本次更新：
+// 1. resetAllDolls() 地面Y改为读取 CONFIG.GROUND_Y
+// 2. 统一地面Y值（GROUND_Y=0.0）
+// 3. 娃娃初始摆放高度修正：position.y = GROUND_Y + radius（底部刚好落地）
 
 window.DollManager = {
     dolls: [],          // 娃娃数组
@@ -85,12 +90,16 @@ window.DollManager = {
             doll.add(rightArm);
             
             // 随机位置（在机箱范围内，且位于地面上）
+            // 注意：position.y 是球心，物理底部 = position.y - radius
+            // 为了让娃娃底部刚好落在 GROUND_Y，需要 position.y = GROUND_Y + radius
             const halfWidth = (CONFIG.CABINET_WIDTH || 3.2) / 2 - 0.5;
             const halfDepth = (CONFIG.CABINET_DEPTH || 3.2) / 2 - 0.5;
             const x = (Math.random() - 0.5) * 2 * halfWidth;
             const z = (Math.random() - 0.5) * 2 * halfDepth;
-            const groundY = CONFIG.GROUND_Y || 0.5;
-            doll.position.set(x, groundY + dollSize * 0.5, z);
+            const groundY = (CONFIG.GROUND_Y != null) ? CONFIG.GROUND_Y : 0.0;
+            const dollRadius = (window.currentConfig && window.currentConfig.dollRadius !== undefined)
+                ? (window.currentConfig.dollRadius / 100) : 0.3;
+            doll.position.set(x, groundY + dollRadius, z);
             
             // 用户数据
             doll.userData = {
@@ -229,7 +238,7 @@ window.DollManager = {
             // 随机位置
             const x = (Math.random() - 0.5) * (halfWidth - 1);
             const z = (Math.random() - 0.5) * (halfDepth - 1);
-            doll.position.set(x, 0.5, z);
+            doll.position.set(x, CONFIG.GROUND_Y || 0.0, z);
             
             doll.userData.isGrabbed = false;
             

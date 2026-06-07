@@ -11,7 +11,7 @@ window.CONFIG = {
     DOLL_COUNT: 5,           // 娃娃数量
     CLAW_COLLISION_RADIUS: 0.8, // 爪子碰撞半径（爪子放大后同步增大）
     ROPE_LENGTH: 1.5,         // 绳子长度
-    GROUND_Y: 0.5             // 地面高度
+    GROUND_Y: 0.0             // 地面高度（机箱底部 Y 坐标）
 };
 
 // 游戏状态枚举
