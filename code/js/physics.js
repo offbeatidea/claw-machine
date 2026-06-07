@@ -18,6 +18,9 @@ window.PhysicsEngine = {
     friction: 0.9,            // 地面摩擦力
     airResistance: 0.02,      // 空气阻力
     rotationDamping: 0.95,    // 旋转阻尼（每帧保留率，越小停得越快）
+    cabinetBounceDamping: 0.5,   // 仓壁碰撞反弹阻尼（0.5 = 保留50%能量）
+    dollMaxSpeed: 15.0,         // 娃娃最大速度上限（任何轴分量不超过此值）
+    cabinetMinEscapeSpeed: 0.5,  // 贴墙时最小脱离速度（防止抖动）
 
     // ==================== 初始化 ====================
     init() {
@@ -147,6 +150,90 @@ window.PhysicsEngine = {
         dollPhysics.velocity.z *= (1.0 - airRes * deltaTime);
     },
 
+    // ==================== 仓壁碰撞检测 ====================
+    checkCabinetCollision(dollPhysics) {
+        const CONFIG = window.CONFIG;
+        const halfWidth  = (CONFIG.CABINET_WIDTH  || 3.2) / 2;
+        const halfDepth  = (CONFIG.CABINET_DEPTH || 3.2) / 2;
+        const cabHeight =  CONFIG.CABINET_HEIGHT || 4.5;
+        const radius = dollPhysics.radius;
+        const damp   = (window.currentConfig && window.currentConfig.cabinetBounceDamping != null)
+                       ? window.currentConfig.cabinetBounceDamping / 100
+                       : this.cabinetBounceDamping;
+        const minEsc = (window.currentConfig && window.currentConfig.cabinetMinEscapeSpeed != null)
+                       ? window.currentConfig.cabinetMinEscapeSpeed
+                       : this.cabinetMinEscapeSpeed;
+        let collided = false;
+
+        // X 方向（左右墙）
+        const minX = -halfWidth  + radius;
+        const maxX =  halfWidth  - radius;
+        if (dollPhysics.position.x < minX) {
+            dollPhysics.position.x = minX;
+            dollPhysics.velocity.x = -dollPhysics.velocity.x * damp;
+            // 最小脱离速度：确保朝内且不小于 minEsc
+            const towardCenterX = 1; // 贴左墙，朝内=右（+X）
+            if (Math.abs(dollPhysics.velocity.x) < minEsc || Math.sign(dollPhysics.velocity.x) !== towardCenterX) {
+                dollPhysics.velocity.x = towardCenterX * minEsc;
+            }
+            collided = true;
+        } else if (dollPhysics.position.x > maxX) {
+            dollPhysics.position.x = maxX;
+            dollPhysics.velocity.x = -dollPhysics.velocity.x * damp;
+            // 最小脱离速度：确保朝内且不小于 minEsc
+            const towardCenterX = -1; // 贴右墙，朝内=左（-X）
+            if (Math.abs(dollPhysics.velocity.x) < minEsc || Math.sign(dollPhysics.velocity.x) !== towardCenterX) {
+                dollPhysics.velocity.x = towardCenterX * minEsc;
+            }
+            collided = true;
+        }
+
+        // Z 方向（前后墙）
+        const minZ = -halfDepth  + radius;
+        const maxZ =  halfDepth  - radius;
+        if (dollPhysics.position.z < minZ) {
+            dollPhysics.position.z = minZ;
+            dollPhysics.velocity.z = -dollPhysics.velocity.z * damp;
+            // 最小脱离速度：确保朝内且不小于 minEsc
+            const towardCenterZ = 1; // 贴前墙，朝内=后（+Z）
+            if (Math.abs(dollPhysics.velocity.z) < minEsc || Math.sign(dollPhysics.velocity.z) !== towardCenterZ) {
+                dollPhysics.velocity.z = towardCenterZ * minEsc;
+            }
+            collided = true;
+        } else if (dollPhysics.position.z > maxZ) {
+            dollPhysics.position.z = maxZ;
+            dollPhysics.velocity.z = -dollPhysics.velocity.z * damp;
+            // 最小脱离速度：确保朝内且不小于 minEsc
+            const towardCenterZ = -1; // 贴后墙，朝内=前（-Z）
+            if (Math.abs(dollPhysics.velocity.z) < minEsc || Math.sign(dollPhysics.velocity.z) !== towardCenterZ) {
+                dollPhysics.velocity.z = towardCenterZ * minEsc;
+            }
+            collided = true;
+        }
+
+        if (collided) {
+            log(LOG_LEVEL.WARN, 'PhysicsEngine', `娃娃 ${dollPhysics.index} 碰到仓壁, 速度:(${dollPhysics.velocity.x.toFixed(2)},${dollPhysics.velocity.y.toFixed(2)},${dollPhysics.velocity.z.toFixed(2)})`);
+        }
+        return collided;
+    },
+
+    // ==================== 限制娃娃最大速度 ====================
+    clampDollSpeed(dollPhysics) {
+        const maxSpeed = (window.currentConfig && window.currentConfig.dollMaxSpeed != null)
+                        ? window.currentConfig.dollMaxSpeed
+                        : this.dollMaxSpeed;
+        const vx = dollPhysics.velocity.x;
+        const vy = dollPhysics.velocity.y;
+        const vz = dollPhysics.velocity.z;
+        const speedSq = vx * vx + vy * vy + vz * vz;
+        if (speedSq > maxSpeed * maxSpeed) {
+            const scale = maxSpeed / Math.sqrt(speedSq);
+            dollPhysics.velocity.x *= scale;
+            dollPhysics.velocity.y *= scale;
+            dollPhysics.velocity.z *= scale;
+        }
+    },
+
     // ==================== 地面碰撞检测 ====================
     checkGroundCollision(dollPhysics) {
         const groundY = this.groundY;
@@ -264,10 +351,16 @@ window.PhysicsEngine = {
             // 1. 应用重力
             this.applyGravity(dollPhysics, dt);
 
+            // 1.5 限制娃娃最大速度
+            this.clampDollSpeed(dollPhysics);
+
             // 2. 更新位置
             dollPhysics.position.x += dollPhysics.velocity.x * dt;
             dollPhysics.position.y += dollPhysics.velocity.y * dt;
             dollPhysics.position.z += dollPhysics.velocity.z * dt;
+
+            // 2.5 仓壁碰撞检测
+            this.checkCabinetCollision(dollPhysics);
 
             // 3. 更新旋转（带阻尼，逐渐停止）
             if (dollPhysics.mesh && dollPhysics.state !== 'resting') {

@@ -1,15 +1,11 @@
 {
-  "major": 3,
-  "minor": 3,
-  "patch": 0,
-  "build": "20260607a",
-  "full": "v3.3.0-build20260607a",
-  "cache": "20260607a",
-  "date": "2026-06-07",
-  "changes": [
-    "四元数修复：爪指旋转改用 quaternion 替代 Euler 角（从 0110eb8 恢复）",
-    "init() 新增 fingerBaseQuats 预计算基准四元数",
-    "updateAnimation() 改用 quaternion 乘法实现本地 X 轴旋转",
-    "animateClawOpen/Close() 改用 animStartAngles/animTargetAngles（角度）"
-  ]
+    "version": "v3.3.0-build20260607b",
+    "buildDate": "2026-06-07",
+    "changes": [
+        "恢复0110eb8中丢失的所有修改",
+        "调试可视化（出口圈/地面/娃娃碰撞范围/轨迹记录）",
+        "落地瞬间立即判分（scoreDollOnLanding）",
+        "仓壁碰撞检测 + 最小脱离速度",
+        "exitRadius/configurable + 仓壁反弹阻尼 + 娃娃最大速度配置项"
+    ]
 }

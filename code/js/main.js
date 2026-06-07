@@ -188,7 +188,23 @@ function setupEventListeners() {
             if (window.toggleLabels) window.toggleLabels();
         });
     }
-    
+
+    // 调试可视化按钮
+    const toggleDebugVisBtn = document.getElementById('toggleDebugVisBtn');
+    if (toggleDebugVisBtn) {
+        toggleDebugVisBtn.addEventListener('click', () => {
+            if (window.toggleDebugVisuals) window.toggleDebugVisuals();
+        });
+    }
+
+    // 清理轨迹按钮
+    const clearTrajectoriesBtn = document.getElementById('clearTrajectoriesBtn');
+    if (clearTrajectoriesBtn) {
+        clearTrajectoriesBtn.addEventListener('click', () => {
+            if (window.clearDollTrajectories) window.clearDollTrajectories();
+        });
+    }
+
     // 窗口缩放
     window.addEventListener('resize', onWindowResize);
 }
@@ -466,6 +482,11 @@ function animate() {
     
     // 4. 更新UI
     updateUI();
+    
+    // 4.5 调试可视化更新
+    if (window.debugVisualsUpdate) {
+        window.debugVisualsUpdate();
+    }
     
     // 5. 渲染
     if (renderer && scene && camera) {

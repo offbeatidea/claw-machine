@@ -114,6 +114,53 @@ body {
     color: white;
 }
 
+#toggleDebugVisBtn {
+    position: absolute;
+    top: 200px;
+    right: 20px;
+    background: rgba(255,150,100,0.9);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 25px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+}
+
+#toggleDebugVisBtn:hover {
+    background: rgba(255,170,120,1);
+    transform: scale(1.05);
+}
+
+#toggleDebugVisBtn.active {
+    background: rgba(200,100,50,1);
+    color: white;
+}
+
+#clearTrajectoriesBtn {
+    position: absolute;
+    top: 260px;
+    right: 20px;
+    background: rgba(100,200,255,0.9);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 25px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+}
+
+#clearTrajectoriesBtn:hover {
+    background: rgba(120,220,255,1);
+    transform: scale(1.05);
+}
+
 #configPanel {
     position: absolute;
     top: 50%;
@@ -506,6 +553,20 @@ body {
     
     #labelBtn {
         top: 140px;
+        right: 20px;
+        width: 120px;
+        height: 50px;
+    }
+    
+    #toggleDebugVisBtn {
+        top: 200px;
+        right: 20px;
+        width: 120px;
+        height: 50px;
+    }
+    
+    #clearTrajectoriesBtn {
+        top: 260px;
         right: 20px;
         width: 120px;
         height: 50px;
