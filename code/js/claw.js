@@ -1,5 +1,5 @@
 // claw.js - 爪子系统（3D钟摆物理 + 多抓模式 + 释放→掉落→判分流程）
-// 版本: v3.3.2-build20260607b
+// 版本: v3.3.2-build20260607f
 // 依赖: THREE, window.CONFIG, window.currentConfig, window.PhysicsEngine, window.DollManager
 //
 // 游戏状态机:
@@ -775,7 +775,9 @@ window.Claw = {
             return;
         }
 
-        // 标记正在移除，physics.js 跳过此娃娃的物理更新
+        // 立即清零速度/旋转，防止本帧残余逻辑继续执行
+        dollPhysics.velocity.set(0, 0, 0);
+        dollPhysics.rotationSpeed.set(0, 0, 0);
         dollPhysics._removing = true;
 
         // 开始闪烁渐隐动画

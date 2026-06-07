@@ -1,7 +1,7 @@
 // physics.js - 自研轻量级物理引擎（不依赖Cannon.js）
 // 依赖: window.CONFIG, window.currentConfig
 // 功能: 抛物线运动、娃娃碰撞检测、地面/堆叠碰撞、反弹
-// 版本: v3.3.2-build20260607b
+// 版本: v3.3.2-build20260607f
 
 // 本次更新：
 // 1. 地面Y统一：移除硬编码 groundY，改为读取 window.CONFIG.GROUND_Y
@@ -39,6 +39,7 @@ window.PhysicsEngine = {
         const dollHeight = (window.currentConfig && window.currentConfig.dollHeight) || 0.6;
 
         const physicsObj = {
+            id: index, // 唯一标识，与 doll.userData.id 对应
             index: index,
             mesh: dollMesh,
             position: new THREE.Vector3().copy(dollMesh.position),
@@ -413,8 +414,8 @@ window.PhysicsEngine = {
             dollPhysics.position.y += dollPhysics.velocity.y * dt;
             dollPhysics.position.z += dollPhysics.velocity.z * dt;
 
-            // 2.5 出口区域实时检测（优先级高于地面）
-            this.checkExitZone(dollPhysics);
+            // 2.5 仓壁碰撞检测
+            this.checkCabinetCollision(dollPhysics);
 
             // 3. 更新旋转（带阻尼，逐渐停止）
             if (dollPhysics.mesh && dollPhysics.state !== 'resting') {
@@ -434,13 +435,12 @@ window.PhysicsEngine = {
                 if (Math.abs(dollPhysics.rotationSpeed.z) < 0.01) dollPhysics.rotationSpeed.z = 0;
             }
 
-            // 4. 地面碰撞检测
+            // 4. 地面碰撞检测（内含出口区域检测）
             this.checkGroundCollision(dollPhysics);
+            // 若已被移除或正在移除，跳过后续处理
+            if (dollPhysics._removed || dollPhysics._removing) return;
 
-            // 5. 出口区域实时检测（任意位置/状态均生效）
-            this.checkExitZone(dollPhysics);
-
-            // 6. 娃娃-娃娃碰撞检测【已关闭】
+            // 5. 娃娃-娃娃碰撞检测【已关闭】
             // 原因：娃娃间碰撞导致连锁反应，所有娃娃被弹飞出机箱
             // 如需重新启用，取消下方注释即可
             // this.dolls.forEach(otherPhysics => {
