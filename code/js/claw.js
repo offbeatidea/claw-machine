@@ -38,8 +38,8 @@ window.Claw = {
     animating: false,
     animStartTime: 0,
     animDuration: 0.6,   // U9-4：>0.5秒动画过程
-    animStartRotations: [],  // 每个爪指的开始旋转 [x, x, x]
-    animTargetRotations: [], // 每个爪指的目标旋转 [x, x, x]
+    animStartAngles: [],  // 每个爪指的开始本地X轴旋转角度（弧度）
+    animTargetAngles: [], // 每个爪指的目标本地X轴旋转角度（弧度）
     returnCloseAnimPlayed: false,  // U9-3：防止回到出口时重复播放闭合动画
 
     // ==================== 初始化 ====================
@@ -104,6 +104,17 @@ window.Claw = {
 
             this.swing.add(fg);
             this.fingers.push(fg);
+        }
+
+        // FIX-1：预计算每个爪指的基准四元数（仅含 rotation.y 的 Y 轴旋转，本地 X 旋转=0 即张开状态）
+        // 动画时：quaternion = baseQuat × rotateX(angle)，确保绕本地 X 轴旋转
+        this.fingerBaseQuats = this.fingerBaseRots.map(function(rotY) {
+            return new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rotY, 0, 'XYZ'));
+        });
+        // 初始化每个爪指的四元数为"张开"状态（本地 X 旋转角度 = 0）
+        for (var fi = 0; fi < this.fingers.length; fi++) {
+            this.fingers[fi].quaternion.copy(this.fingerBaseQuats[fi]);
+            this.fingers[fi].userData.currentLocalXRot = 0;
         }
 
         // 初始绳长（必须等待 ConfigManager.init() 完成后读取）
@@ -889,37 +900,48 @@ window.Claw = {
         // smoothstep 缓动：3t² - 2t³
         const st = t * t * (3 - 2 * t);
 
-        for (let i = 0; i < this.fingers.length; i++) {
-            const start = this.animStartRotations[i];
-            const target = this.animTargetRotations[i];
-            this.fingers[i].rotation.x = start + (target - start) * st;
+        for (var i = 0; i < this.fingers.length; i++) {
+            const startAngle = this.animStartAngles[i];
+            const targetAngle = this.animTargetAngles[i];
+            const currentAngle = startAngle + (targetAngle - startAngle) * st;
+
+            // FIX-1 核心：quaternion = baseQuat × rotateX(angle)
+            const q = this.fingerBaseQuats[i].clone();
+            const xRotQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), currentAngle);
+            q.multiply(xRotQuat);
+            this.fingers[i].quaternion.copy(q);
+            this.fingers[i].userData.currentLocalXRot = currentAngle;
         }
 
         if (t >= 1.0) {
             this.animating = false;
             // 确保最终值精确
-            for (let i = 0; i < this.fingers.length; i++) {
-                this.fingers[i].rotation.x = this.animTargetRotations[i];
+            for (var j = 0; j < this.fingers.length; j++) {
+                const finalQ = this.fingerBaseQuats[j].clone();
+                const finalXRot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.animTargetAngles[j]);
+                finalQ.multiply(finalXRot);
+                this.fingers[j].quaternion.copy(finalQ);
+                this.fingers[j].userData.currentLocalXRot = this.animTargetAngles[j];
             }
-            window.log('[Claw] 爪子动画完成');
+            window.log('[Claw] 爪子动画完成（本地X轴旋转模式）');
         }
     },
 
     animateClawOpen() {
-        window.log('[Claw] 爪子张开（动画）');
+        window.log('[Claw] 爪子张开（动画 - 本地X轴旋转）');
         this.animating = true;
         this.animStartTime = performance.now() / 1000;
-        this.animStartRotations = this.fingers.map(f => f.rotation.x);
-        this.animTargetRotations = this.fingers.map(() => 0); // 张开目标：rotation.x = 0
-        window.log('[Claw] 动画启动：start=' + this.animStartRotations.join(',') + ' target=0');
+        this.animStartAngles = this.fingers.map(f => f.userData.currentLocalXRot || 0);
+        this.animTargetAngles = this.fingers.map(function() { return 0; }); // 张开目标：本地 X 旋转角度 = 0
+        window.log('[Claw] 动画启动：start=' + this.animStartAngles.join(',') + ' target=0');
     },
 
     animateClawClose() {
-        window.log('[Claw] 爪子闭合（动画）');
+        window.log('[Claw] 爪子闭合（动画 - 本地X轴旋转）');
         this.animating = true;
         this.animStartTime = performance.now() / 1000;
-        this.animStartRotations = this.fingers.map(f => f.rotation.x);
-        this.animTargetRotations = this.fingers.map(() => 0.8); // 闭合目标：rotation.x = 0.8
+        this.animStartAngles = this.fingers.map(f => f.userData.currentLocalXRot || 0);
+        this.animTargetAngles = this.fingers.map(function() { return -Math.PI / 8; }); // 闭合目标：本地 X 旋转角度 = -22.5°（指尖重合）
     },
 
     animateGrabFail(doll) {

@@ -2,15 +2,14 @@
   "major": 3,
   "minor": 3,
   "patch": 0,
-  "build": "20260606b",
-  "full": "v3.3.0-build20260606b",
-  "cache": "20260606b",
-  "date": "2026-06-06",
+  "build": "20260607a",
+  "full": "v3.3.0-build20260607a",
+  "cache": "20260607a",
+  "date": "2026-06-07",
   "changes": [
-    "落地瞬间立即判分：checkGroundCollision() 调用 scoreDollOnLanding()",
-    "scoreDollOnLanding()：第一次触地立即判分，得分则移除娃娃",
-    "judgeScore() 改造为兜底，releasedDolls 已空则跳过",
-    "checkDollsLanded() 改造：releasedDolls 已空直接进 idle",
-    "physics.js 调用 scoreDollOnLanding 后若返回 true 则跳过反弹逻辑"
+    "四元数修复：爪指旋转改用 quaternion 替代 Euler 角（从 0110eb8 恢复）",
+    "init() 新增 fingerBaseQuats 预计算基准四元数",
+    "updateAnimation() 改用 quaternion 乘法实现本地 X 轴旋转",
+    "animateClawOpen/Close() 改用 animStartAngles/animTargetAngles（角度）"
   ]
 }
