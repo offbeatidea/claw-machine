@@ -36,7 +36,6 @@ window.ConfigManager = {
         { id: 'dollSizeFactor', label: '娃娃尺寸系数', group: '其他', min: 50, max: 200, step: 5, default: 100, unit: '%', explanation: '控制所有娃娃的显示大小。值越大娃娃越大，越难抓取。' },
         { id: 'clawSizeFactor', label: '爪子尺寸系数', group: '其他', min: 50, max: 200, step: 5, default: 100, unit: '%', explanation: '控制爪子的显示大小。值越大爪子越大，越容易抓到娃娃。' },
         { id: 'clawInitialPos', label: '爪子初始位置', group: '其他', type: 'select', options: ['center', 'exit'], default: 'exit', explanation: '游戏开始时爪子的位置。"center"为机箱中心，"exit"为出口上方。' },
-        { id: 'dollRadius', label: '娃娃碰撞半径', group: '其他', min: 10, max: 100, step: 1, default: 50, unit: '', explanation: '娃娃物理碰撞的检测半径。值越大越容易与其他娃娃发生碰撞。' },
         { id: 'dollHeight', label: '娃娃高度', group: '其他', min: 0.0, max: 200.0, step: 5.0, default: 0.0, unit: '', explanation: '娃娃的显示高度。影响娃娃的视觉大小和碰撞盒高度。' },
         { id: 'exitRadius', label: '出口判定半径', group: '其他', min: 0.5, max: 3.0, step: 0.1, default: 1.0, unit: '', explanation: '判定娃娃是否落入出口的半径。娃娃落地位置距出口中心小于此值时得分。值越大越容易得分。' },
         { id: 'cabinetBounceDamping', label: '仓壁反弹阻尼', group: '其他', min: 0, max: 100, step: 1, default: 50, unit: '%', explanation: '娃娃碰到机舱仓壁时，速度保留的百分比。值越大反弹越强（0=不反弹，100=完全弹性碰撞）。' },

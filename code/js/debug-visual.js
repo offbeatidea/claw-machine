@@ -104,7 +104,10 @@
         dollHitboxVisuals = [];
 
         const dolls = (window.DollManager && window.DollManager.dolls) || [];
-        const dollRadius = ((window.currentConfig && window.currentConfig.dollRadius) || 0.3);
+        // 娃娃碰撞范围（从 userData 读取，自动跟随 dollSize）
+        const dollRadius = (doll.userData && doll.userData.dollRadius)
+            ? doll.userData.dollRadius
+            : 0.3; // 兜底值
 
         for (const doll of dolls) {
             if (!doll || !doll.userData) continue;

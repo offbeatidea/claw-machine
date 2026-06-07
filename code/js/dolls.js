@@ -102,11 +102,14 @@ window.DollManager = {
             doll.position.set(x, groundY + dollRadius, z);
             
             // 用户数据
+            const dollRadius = dollSize * 0.6; // 物理半径自动跟随视觉大小
             doll.userData = {
                 id: i,
                 name: names[i],
                 color: colors[i],
-                isGrabbed: false
+                isGrabbed: false,
+                dollSize: dollSize,
+                dollRadius: dollRadius
             };
             
             this.dolls.push(doll);

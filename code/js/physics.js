@@ -11,8 +11,7 @@
 window.PhysicsEngine = {
     gravity: -9.8,           // 重力加速度 (m/s²)
     dolls: [],                // 娃娃物理对象数组
-    groundY: 0.5,            // 地面高度
-    dollRadius: 0.3,         // 娃娃碰撞半径
+    groundY: 0.5,            // 地面高度（已改为从 CONFIG.GROUND_Y 读取）
     maxBounces: 3,           // 最大反弹次数
     bounceDamping: 0.6,      // 反弹阻尼（0.6 = 保留60%能量）
     friction: 0.9,            // 地面摩擦力
@@ -32,7 +31,11 @@ window.PhysicsEngine = {
 
     // ==================== 注册娃娃 ====================
     registerDoll(dollMesh, index) {
-        const dollRadius = ((window.currentConfig && window.currentConfig.dollRadius) || (this.dollRadius * 100)) / 100;
+        // dollRadius 自动跟随 dollSize，不再独立配置
+        // dollSize/dollRadius 已在 dolls.js 创建时存入 userData
+        const dollRadius = (dollMesh.userData && dollMesh.userData.dollRadius)
+            ? dollMesh.userData.dollRadius
+            : 0.3; // 兜底值
         const dollHeight = (window.currentConfig && window.currentConfig.dollHeight) || 0.6;
 
         const physicsObj = {
