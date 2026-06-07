@@ -1,11 +1,12 @@
 {
-    "version": "v3.3.0-build20260607b",
+    "version": "v3.3.0-build20260607c",
     "buildDate": "2026-06-07",
     "changes": [
         "恢复0110eb8中丢失的所有修改",
         "调试可视化（出口圈/地面/娃娃碰撞范围/轨迹记录）",
         "落地瞬间立即判分（scoreDollOnLanding）",
         "仓壁碰撞检测 + 最小脱离速度",
-        "exitRadius/configurable + 仓壁反弹阻尼 + 娃娃最大速度配置项"
+        "exitRadius/configurable + 仓壁反弹阻尼 + 娃娃最大速度配置项",
+        "整理记忆和更新日志，准备开启新对话"
     ]
 }
