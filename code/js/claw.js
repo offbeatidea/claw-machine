@@ -765,7 +765,7 @@ window.Claw = {
 
     // ==================== 出口区域实时判分（任意位置/状态进入出口即触发）====================
     scoreDollOnExitZone(dollPhysics) {
-        if (dollPhysics._removed) return; // 已移除，跳过
+        if (dollPhysics._removed || dollPhysics._removing) return; // 已移除或正在移除，跳过
 
         const doll = window.DollManager
             ? window.DollManager.dolls.find(d => d.userData && d.userData.id === dollPhysics.id)
@@ -775,6 +775,88 @@ window.Claw = {
             return;
         }
 
+        // 标记正在移除，physics.js 跳过此娃娃的物理更新
+        dollPhysics._removing = true;
+
+        // 开始闪烁渐隐动画
+        this.playRemoveAnimation(doll, dollPhysics);
+    },
+
+    // ==================== 播放移除动画（闪烁渐隐）====================
+    playRemoveAnimation(doll, dollPhysics) {
+        if (!doll || !dollPhysics) return;
+
+        let blinkCount = 0;
+        const maxBlinks = 5; // 闪烁5次（500ms内）
+        const blinkInterval = 100; // 每100ms切换一次
+        let isVisible = true;
+
+        const intervalId = setInterval(() => {
+            if (!doll || !doll.parent) {
+                clearInterval(intervalId);
+                return;
+            }
+
+            // 切换可见性（闪烁效果）
+            isVisible = !isVisible;
+            doll.traverse((child) => {
+                if (child.isMesh) {
+                    child.visible = isVisible;
+                }
+            });
+
+            blinkCount++;
+            if (blinkCount >= maxBlinks) {
+                clearInterval(intervalId);
+
+                // 闪烁结束，开始渐隐（最后200ms）
+                this.fadeOutDoll(doll, dollPhysics);
+            }
+        }, blinkInterval);
+    },
+
+    // ==================== 渐隐娃娃 ====================
+    fadeOutDoll(doll, dollPhysics) {
+        if (!doll || !doll.parent) return;
+
+        const startTime = Date.now();
+        const duration = 200; // 渐隐时长200ms
+
+        const animateFade = () => {
+            if (!doll || !doll.parent) return;
+
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1.0);
+            const opacity = 1.0 - progress;
+
+            // 设置透明度
+            doll.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(mat => {
+                            mat.transparent = true;
+                            mat.opacity = opacity;
+                        });
+                    } else {
+                        child.material.transparent = true;
+                        child.material.opacity = opacity;
+                    }
+                }
+            });
+
+            if (progress < 1.0) {
+                requestAnimationFrame(animateFade);
+            } else {
+                // 渐隐完成，执行判分+移除+播特效
+                this.finishRemoveDoll(doll, dollPhysics);
+            }
+        };
+
+        requestAnimationFrame(animateFade);
+    },
+
+    // ==================== 完成移除（判分+移除+播特效）====================
+    finishRemoveDoll(doll, dollPhysics) {
         // 得分
         if (typeof window.gameScore !== 'undefined') {
             window.gameScore++;
@@ -787,6 +869,7 @@ window.Claw = {
 
         // 标记已移除，防止 physics 重复处理
         dollPhysics._removed = true;
+        dollPhysics._removing = false;
 
         // 强制静止
         dollPhysics.state = 'resting';
@@ -817,7 +900,7 @@ window.Claw = {
         const wIdx = this.weakGrabDolls.indexOf(doll);
         if (wIdx !== -1) this.weakGrabDolls.splice(wIdx, 1);
 
-        window.log('[Claw] scoreDollOnExitZone 完成，娃娃已从所有系统移除');
+        window.log('[Claw] finishRemoveDoll 完成，娃娃已从所有系统移除');
     },
 
     // ==================== 播放得分特效（金色粒子+文字）====================

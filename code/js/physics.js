@@ -260,6 +260,26 @@ window.PhysicsEngine = {
         }
 
         if (dollBottom <= groundY && dollPhysics.velocity.y <= 0) {
+            // 【方案1】地面碰撞后、反弹前，先判断接触点是否在出口区内
+            const CONFIG = window.CONFIG || {};
+            const exitX = (CONFIG.CABINET_WIDTH || 3.2) / 2 - 0.5;
+            const exitZ = (CONFIG.CABINET_DEPTH || 3.2) / 2 - 0.5;
+            const exitRadius = (window.currentConfig && window.currentConfig.exitRadius !== undefined)
+                ? window.currentConfig.exitRadius : 1.0;
+            const contactX = dollPhysics.position.x;
+            const contactZ = dollPhysics.position.z;
+            const dx = contactX - exitX;
+            const dz = contactZ - exitZ;
+            const distXZ = Math.sqrt(dx * dx + dz * dz);
+
+            if (distXZ < exitRadius) {
+                // 在出口区内：立即判分移除，不执行反弹
+                if (window.Claw && window.Claw.scoreDollOnExitZone) {
+                    window.Claw.scoreDollOnExitZone(dollPhysics);
+                }
+                return true; // 已移除，跳过后续反弹逻辑
+            }
+            // 不在出口区内：执行原有反弹逻辑
             // 第一次落地时，立即通知 Claw 判分（不等反弹结束）
             if (!dollPhysics.onGround && window.Claw && window.Claw.scoreDollOnLanding) {
                 const removed = window.Claw.scoreDollOnLanding(dollPhysics);
@@ -300,32 +320,25 @@ window.PhysicsEngine = {
         return false;
     },
 
-    // ==================== 出口区域实时检测 ====================
+    // ==================== 出口区域实时检测（备用检测，不限高度）====================
     checkExitZone(dollPhysics) {
         // 被抓取的不检测
         if (dollPhysics.state === 'grabbed') return;
-        // 已移除的跳过
-        if (dollPhysics._removed) return;
+        // 已移除或正在移除的跳过
+        if (dollPhysics._removed || dollPhysics._removing) return;
 
         const CONFIG = window.CONFIG || {};
         const exitX = (CONFIG.CABINET_WIDTH || 3.2) / 2 - 0.5;
         const exitZ = (CONFIG.CABINET_DEPTH || 3.2) / 2 - 0.5;
         const exitRadius = (window.currentConfig && window.currentConfig.exitRadius !== undefined)
             ? window.currentConfig.exitRadius : 1.0;
-        const groundY = (CONFIG.GROUND_Y != null) ? CONFIG.GROUND_Y : 0.0;
-        const exitZoneTop = groundY + 0.1; // 出口判定区域顶部（比地面高0.1）
-
-        // 视觉中心在 dollPhysics.position.y
-        // 视觉底部 = position.y - visualCenterY
-        const visualCenterY = (dollPhysics.mesh && dollPhysics.mesh.userData && dollPhysics.mesh.userData.visualCenterY)
-            ? dollPhysics.mesh.userData.visualCenterY : 0.85;
-        const dollBottom = dollPhysics.position.y - visualCenterY;
 
         const dx = dollPhysics.position.x - exitX;
         const dz = dollPhysics.position.z - exitZ;
         const distXZ = Math.sqrt(dx * dx + dz * dz);
 
-        if (distXZ < exitRadius && dollBottom >= groundY && dollBottom <= exitZoneTop) {
+        // 不限高度，只要 XZ 在出口区内即判分（备用检测）
+        if (distXZ < exitRadius) {
             // 立即通知 Claw 判分移除
             if (window.Claw && window.Claw.scoreDollOnExitZone) {
                 window.Claw.scoreDollOnExitZone(dollPhysics);
@@ -384,7 +397,8 @@ window.PhysicsEngine = {
         const dt = Math.min(deltaTime, 0.033); // 最大33ms (30 FPS)
 
         this.dolls.forEach(dollPhysics => {
-            if (!dollPhysics || dollPhysics.state === 'grabbed') {
+            // 跳过：无效娃娃、被抓取中、已移除、正在播放移除动画
+            if (!dollPhysics || dollPhysics.state === 'grabbed' || dollPhysics._removed || dollPhysics._removing) {
                 return;
             }
 
