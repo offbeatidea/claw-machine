@@ -1,11 +1,12 @@
 {
-    "version": "v3.3.2-build20260607c",
+    "version": "v3.3.2-build20260607d",
     "buildDate": "2026-06-07",
     "changes": [
         "统一地面Y值：GROUND_Y=0.0，所有系统对齐（physics/cabinet/dolls/debug）",
         "娃娃初始摆放高度修正：position.y = GROUND_Y + radius（底部刚好落地）",
         "出口区域实时检测：娃娃任意位置/状态进入出口圆柱体即判分移除",
         "得分特效：移除点播放金色粒子+分数动画",
-        "dollRadius自动跟随dollSize：dollRadius = dollSize * 0.6，移除独立配置项"
+        "dollRadius自动跟随dollSize：dollRadius = dollSize * 0.6，移除独立配置项",
+        "娃娃模型原点对齐视觉中心：Group原点从底部移到中心，物理/地面/出口检测同步修正"
     ]
 }

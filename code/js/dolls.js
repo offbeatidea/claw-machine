@@ -27,6 +27,12 @@ window.DollManager = {
         for (let i = 0; i < (CONFIG.DOLL_COUNT || 5); i++) {
             const doll = new THREE.Group();
             
+            // 视觉中心偏移：让 Group 原点对齐视觉中心
+            // 身体：BoxGeometry 中心在 y=0.5*dollSize，身体底部在 y=-0.1*dollSize
+            // 头：SphereGeometry 中心在 y=1.4*dollSize，头部顶部在 y=1.8*dollSize
+            // 视觉总高：从 y=-0.1*dollSize 到 y=1.8*dollSize，中心在 y=0.85*dollSize
+            const visualCenterY = dollSize * 0.85;
+            
             // 身体
             const bodyMaterial = new THREE.MeshPhongMaterial({
                 color: colors[i],
@@ -36,7 +42,7 @@ window.DollManager = {
                 new THREE.BoxGeometry(dollSize, dollSize * 1.2, dollSize),
                 bodyMaterial
             );
-            body.position.set(0, dollSize * 0.5, 0);
+            body.position.set(0, dollSize * 0.5 - visualCenterY, 0);
             body.castShadow = true;
             doll.add(body);
             
@@ -45,7 +51,7 @@ window.DollManager = {
                 new THREE.SphereGeometry(dollSize * 0.4, 16, 16),
                 bodyMaterial
             );
-            head.position.set(0, dollSize * 1.4, 0);
+            head.position.set(0, dollSize * 1.4 - visualCenterY, 0);
             head.castShadow = true;
             doll.add(head);
             
@@ -55,14 +61,14 @@ window.DollManager = {
                 new THREE.SphereGeometry(0.05 * sizeFactor, 8, 8),
                 eyeMaterial
             );
-            leftEye.position.set(-0.12 * sizeFactor, dollSize * 1.45, dollSize * 0.35);
+            leftEye.position.set(-0.12 * sizeFactor, dollSize * 1.45 - visualCenterY, dollSize * 0.35);
             doll.add(leftEye);
             
             const rightEye = new THREE.Mesh(
                 new THREE.SphereGeometry(0.05 * sizeFactor, 8, 8),
                 eyeMaterial
             );
-            rightEye.position.set(0.12 * sizeFactor, dollSize * 1.45, dollSize * 0.35);
+            rightEye.position.set(0.12 * sizeFactor, dollSize * 1.45 - visualCenterY, dollSize * 0.35);
             doll.add(rightEye);
             
             // 手臂
@@ -75,7 +81,7 @@ window.DollManager = {
                 new THREE.CylinderGeometry(0.06 * sizeFactor, 0.06 * sizeFactor, dollSize * 0.8, 8),
                 armMaterial
             );
-            leftArm.position.set(-dollSize * 0.5, dollSize * 0.7, 0);
+            leftArm.position.set(-dollSize * 0.5, dollSize * 0.7 - visualCenterY, 0);
             leftArm.rotation.z = Math.PI / 6;
             leftArm.castShadow = true;
             doll.add(leftArm);
@@ -84,32 +90,31 @@ window.DollManager = {
                 new THREE.CylinderGeometry(0.06 * sizeFactor, 0.06 * sizeFactor, dollSize * 0.8, 8),
                 armMaterial
             );
-            rightArm.position.set(dollSize * 0.5, dollSize * 0.7, 0);
+            rightArm.position.set(dollSize * 0.5, dollSize * 0.7 - visualCenterY, 0);
             rightArm.rotation.z = -Math.PI / 6;
             rightArm.castShadow = true;
             doll.add(rightArm);
             
             // 随机位置（在机箱范围内，且位于地面上）
-            // 注意：position.y 是球心，物理底部 = position.y - radius
-            // 为了让娃娃底部刚好落在 GROUND_Y，需要 position.y = GROUND_Y + radius
+            // 注意：position.y 现在是视觉中心，物理底部 = position.y - visualCenterY - radius
+            // 为了让娃娃底部刚好落在 GROUND_Y，需要 position.y = GROUND_Y + visualCenterY + radius
             const halfWidth = (CONFIG.CABINET_WIDTH || 3.2) / 2 - 0.5;
             const halfDepth = (CONFIG.CABINET_DEPTH || 3.2) / 2 - 0.5;
             const x = (Math.random() - 0.5) * 2 * halfWidth;
             const z = (Math.random() - 0.5) * 2 * halfDepth;
             const groundY = (CONFIG.GROUND_Y != null) ? CONFIG.GROUND_Y : 0.0;
-            const dollRadius = (window.currentConfig && window.currentConfig.dollRadius !== undefined)
-                ? (window.currentConfig.dollRadius / 100) : 0.3;
-            doll.position.set(x, groundY + dollRadius, z);
+            const dollRadius = dollSize * 0.6; // 物理半径自动跟随视觉大小
+            doll.position.set(x, groundY + visualCenterY + dollRadius, z);
             
             // 用户数据
-            const dollRadius = dollSize * 0.6; // 物理半径自动跟随视觉大小
             doll.userData = {
                 id: i,
                 name: names[i],
                 color: colors[i],
                 isGrabbed: false,
                 dollSize: dollSize,
-                dollRadius: dollRadius
+                dollRadius: dollRadius,
+                visualCenterY: visualCenterY
             };
             
             this.dolls.push(doll);

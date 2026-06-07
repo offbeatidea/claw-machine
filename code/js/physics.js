@@ -240,11 +240,15 @@ window.PhysicsEngine = {
     // ==================== 地面碰撞检测 ====================
     checkGroundCollision(dollPhysics) {
         const groundY = (window.CONFIG && window.CONFIG.GROUND_Y != null) ? window.CONFIG.GROUND_Y : 0.0;
-        const dollBottom = dollPhysics.position.y - dollPhysics.radius;
+        // 视觉中心在 dollPhysics.position.y
+        // 视觉底部 = position.y - visualCenterY
+        const visualCenterY = (dollPhysics.mesh && dollPhysics.mesh.userData && dollPhysics.mesh.userData.visualCenterY)
+            ? dollPhysics.mesh.userData.visualCenterY : 0.85;
+        const dollBottom = dollPhysics.position.y - visualCenterY;
 
         // 已在地面上且速度向下或为零 → 直接吸附到地面
         if (dollPhysics.onGround && dollPhysics.velocity.y <= 0) {
-            dollPhysics.position.y = groundY + dollPhysics.radius;
+            dollPhysics.position.y = groundY + visualCenterY;
             dollPhysics.velocity.y = 0;
             // 落地后 XZ 速度直接清零，防止持续平移
             dollPhysics.velocity.x = 0;
@@ -266,7 +270,7 @@ window.PhysicsEngine = {
             }
 
             // 落地：将娃娃位置严格吸附到地面上
-            dollPhysics.position.y = groundY + dollPhysics.radius;
+            dollPhysics.position.y = groundY + visualCenterY;
             dollPhysics.velocity.y = -dollPhysics.velocity.y * this.bounceDamping;
 
             // XZ平面速度衰减（摩擦力）
@@ -311,11 +315,17 @@ window.PhysicsEngine = {
         const groundY = (CONFIG.GROUND_Y != null) ? CONFIG.GROUND_Y : 0.0;
         const exitZoneTop = groundY + 0.1; // 出口判定区域顶部（比地面高0.1）
 
+        // 视觉中心在 dollPhysics.position.y
+        // 视觉底部 = position.y - visualCenterY
+        const visualCenterY = (dollPhysics.mesh && dollPhysics.mesh.userData && dollPhysics.mesh.userData.visualCenterY)
+            ? dollPhysics.mesh.userData.visualCenterY : 0.85;
+        const dollBottom = dollPhysics.position.y - visualCenterY;
+
         const dx = dollPhysics.position.x - exitX;
         const dz = dollPhysics.position.z - exitZ;
         const distXZ = Math.sqrt(dx * dx + dz * dz);
 
-        if (distXZ < exitRadius && dollPhysics.position.y >= groundY && dollPhysics.position.y <= exitZoneTop) {
+        if (distXZ < exitRadius && dollBottom >= groundY && dollBottom <= exitZoneTop) {
             // 立即通知 Claw 判分移除
             if (window.Claw && window.Claw.scoreDollOnExitZone) {
                 window.Claw.scoreDollOnExitZone(dollPhysics);
