@@ -1,3 +1,12 @@
+## v3.3.2-build20260608f (2026-06-08)
+
+### 诊断日志清理
+- 清理：删除 claw.js 中所有 [Claw][诊断] 日志块（5处，共74行）
+- 清理：删除 physics.js 中 [Physics][调试] 日志行
+- 保留：debugLog 基础设施（utils.js 中 log() 函数和 downloadDebugLog()），供后续调试使用
+
+---
+
 ## v3.3.2-build20260608e (2026-06-08)
 
 ### Bug修复

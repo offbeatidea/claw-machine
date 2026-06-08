@@ -1,8 +1,9 @@
 {
-    "version": "v3.3.2-build20260608e",
+    "version": "v3.3.2-build20260608f",
     "buildDate": "2026-06-08",
     "changes": [
-        "修复：finishRemoveDoll() 中引用已删除的 gIdx 变量（ReferenceError）",
-        "删除冗余的 gIdx 相关日志输出"
+        "清理：删除 claw.js 中所有 [Claw][诊断] 日志块（5处，共74行）",
+        "清理：删除 physics.js 中 [Physics][调试] 日志行",
+        "保留 debugLog 基础设施（utils.js 中 log() 函数和 downloadDebugLog()）"
     ]
 }

@@ -199,7 +199,6 @@ window.Claw = {
             // 每60帧输出一次当前 grabbedDolls 列表
             if (this._logGrabFollow % 60 === 1) {
                 const names = this.grabbedDolls.map(d => d && d.userData ? d.userData.name : 'NULL').join('、');
-                window.log('[Claw][诊断] grabbedDolls 跟随爪子: ' + names
                     + ' | DollManager.dolls 数量: ' + (window.DollManager && window.DollManager.dolls ? window.DollManager.dolls.length : '?'));
             }
             for (const doll of this.grabbedDolls) {
@@ -345,16 +344,6 @@ window.Claw = {
     grab() {
         if (window.gameState !== 'idle') return;
 
-        // ==================== 诊断：按下抓取按钮 ====================
-        window.log('[Claw][诊断][按下抓取按钮] DollManager.dolls 全列表:');
-        if (window.DollManager && window.DollManager.dolls) {
-            window.DollManager.dolls.forEach((d, i) => {
-                window.log('  [' + i + '] name=' + (d.userData ? d.userData.name : '?') + ' id=' + (d.userData ? d.userData.id : '?'));
-            });
-        }
-        window.log('[Claw][诊断][按下抓取按钮] grabbedDolls=' + this.grabbedDolls.map(d => d && d.userData ? d.userData.name : 'NULL').join('、'));
-        window.log('[Claw][诊断][按下抓取按钮] releasedDolls=' + this.releasedDolls.map(d => d && d.userData ? d.userData.name : 'NULL').join('、'));
-        // ================================================================
 
         // 清除所有娃娃的 grabAttempted 标记，开始新一轮抓取
         if (window.DollManager && window.DollManager.dolls) {
@@ -427,27 +416,9 @@ window.Claw = {
         const config = window.currentConfig || {};
         const successRate = (config.grabSuccessRate || 50) / 100;
 
-        // ==================== 诊断：【抓到判断】全列表日志 ====================
-        window.log('[Claw][诊断][抓到判断] 传入 doll=' + (doll && doll.userData ? doll.userData.name : '?') + ' id=' + (doll && doll.userData ? doll.userData.id : '?'));
-        window.log('[Claw][诊断][抓到判断] grabbedDolls 全列表:');
-        this.grabbedDolls.forEach((d, i) => {
-            window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-        });
-        window.log('[Claw][诊断][抓到判断] DollManager.dolls 全列表:');
-        if (window.DollManager && window.DollManager.dolls) {
-            window.DollManager.dolls.forEach((d, i) => {
-                window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : '?') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-            });
-        }
-        window.log('[Claw][诊断][抓到判断] releasedDolls 全列表:');
-        this.releasedDolls.forEach((d, i) => {
-            window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-        });
-        // ================================================================
 
         // 诊断日志：记录传入的娃娃信息
         if (doll && doll.userData) {
-            window.log('[Claw][诊断] onCollisionDetected: doll.name=' + doll.userData.name
                 + ' doll.id=' + doll.userData.id
                 + ' doll.obj=' + doll.toString().substring(0, 30));
         }
@@ -534,7 +505,6 @@ window.Claw = {
 
         // 诊断日志：记录当前 grabbedDolls 内容
         const beforeNames = this.grabbedDolls.map(d => d && d.userData ? d.userData.name : 'NULL').join('、');
-        window.log('[Claw][诊断] judgeStrongGrab 前 grabbedDolls: ' + beforeNames + ' | isStrong=' + isStrong);
 
         if (isStrong) {
             // 强抓：所有娃娃都保留
@@ -574,7 +544,6 @@ window.Claw = {
         this.grabbedDolls = strongDolls;
         // 诊断日志：记录赋值后的 grabbedDolls
         const afterNames = this.grabbedDolls.map(d => d && d.userData ? d.userData.name : 'NULL').join('、');
-        window.log('[Claw][诊断] judgeStrongGrab 后 grabbedDolls: ' + afterNames);
 
         // 爪子回到出口
         window.gameState = 'returning';
@@ -659,22 +628,6 @@ window.Claw = {
             this.base.position.z = exitZ;
             window.log('[Claw] 已到达出口上方');
 
-            // ==================== 诊断：【出口顶端松爪判断前】全列表日志 ====================
-            window.log('[Claw][诊断][出口顶端松爪判断前] grabbedDolls 全列表:');
-            this.grabbedDolls.forEach((d, i) => {
-                window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-            });
-            window.log('[Claw][诊断][出口顶端松爪判断前] releasedDolls 全列表:');
-            this.releasedDolls.forEach((d, i) => {
-                window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-            });
-            window.log('[Claw][诊断][出口顶端松爪判断前] DollManager.dolls 全列表:');
-            if (window.DollManager && window.DollManager.dolls) {
-                window.DollManager.dolls.forEach((d, i) => {
-                    window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : '?') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-                });
-            }
-            // ================================================================
 
             // 到达出口上方时立即张开爪子（期望行为）
             this.animateClawOpen();
@@ -684,15 +637,12 @@ window.Claw = {
                 this.releaseAllDolls();
 
                 // =================== 诊断：【出口顶端松爪判断后】全列表日志 ===================
-                window.log('[Claw][诊断][出口顶端松爪判断后] grabbedDolls 全列表:');
                 this.grabbedDolls.forEach((d, i) => {
                     window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
                 });
-                window.log('[Claw][诊断][出口顶端松爪判断后] releasedDolls 全列表:');
                 this.releasedDolls.forEach((d, i) => {
                     window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
                 });
-                window.log('[Claw][诊断][出口顶端松爪判断后] DollManager.dolls 全列表:');
                 if (window.DollManager && window.DollManager.dolls) {
                     window.DollManager.dolls.forEach((d, i) => {
                         window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : '?') + ' id=' + (d && d.userData ? d.userData.id : '?'));
@@ -956,23 +906,6 @@ window.Claw = {
     // ==================== 完成移除（判分+移除+播特效）====================
     finishRemoveDoll(doll, dollPhysics) {
 
-        // ==================== 诊断：【得分前】全列表日志 ====================
-        window.log('[Claw][诊断][得分前] doll=' + (doll && doll.userData ? doll.userData.name : '?') + ' id=' + (doll && doll.userData ? doll.userData.id : '?'));
-        window.log('[Claw][诊断][得分前] grabbedDolls 全列表:');
-        this.grabbedDolls.forEach((d, i) => {
-            window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-        });
-        window.log('[Claw][诊断][得分前] releasedDolls 全列表:');
-        this.releasedDolls.forEach((d, i) => {
-            window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-        });
-        window.log('[Claw][诊断][得分前] DollManager.dolls 全列表:');
-        if (window.DollManager && window.DollManager.dolls) {
-            window.DollManager.dolls.forEach((d, i) => {
-                window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : '?') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-            });
-        }
-        // ================================================================
 
         // 得分
         if (typeof window.gameScore !== 'undefined') {
@@ -1013,23 +946,6 @@ window.Claw = {
         const rIdx = this.releasedDolls.indexOf(doll);
         if (rIdx !== -1) this.releasedDolls.splice(rIdx, 1);
 
-        // ==================== 诊断：【得分后】全列表日志 ====================
-        window.log('[Claw][诊断][得分后] finishRemoveDoll: doll=' + (doll.userData ? doll.userData.name : '?') + ' | rIdx=' + rIdx);
-        window.log('[Claw][诊断][得分后] grabbedDolls 全列表:');
-        this.grabbedDolls.forEach((d, i) => {
-            window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-        });
-        window.log('[Claw][诊断][得分后] releasedDolls 全列表:');
-        this.releasedDolls.forEach((d, i) => {
-            window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-        });
-        window.log('[Claw][诊断][得分后] DollManager.dolls 全列表:');
-        if (window.DollManager && window.DollManager.dolls) {
-            window.DollManager.dolls.forEach((d, i) => {
-                window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : '?') + ' id=' + (d && d.userData ? d.userData.id : '?'));
-            });
-        }
-        // ================================================================
 
         const wIdx = this.weakGrabDolls.indexOf(doll);
         if (wIdx !== -1) this.weakGrabDolls.splice(wIdx, 1);
