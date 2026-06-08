@@ -1,7 +1,7 @@
 // physics.js - 自研轻量级物理引擎（不依赖Cannon.js）
 // 依赖: window.CONFIG, window.currentConfig
 // 功能: 抛物线运动、娃娃碰撞检测、地面/堆叠碰撞、反弹
-// 版本: v3.3.2-build20260607f
+// 版本: v3.3.2-build20260608b
 
 // 本次更新：
 // 1. 地面Y统一：移除硬编码 groundY，改为读取 window.CONFIG.GROUND_Y
@@ -51,6 +51,7 @@ window.PhysicsEngine = {
             radius: dollRadius,
             height: dollHeight,
             onGround: true,             // 初始时在地面上，不受重力
+            isGrabbed: false,           // 是否已被抓取过（用于落地判分检查）
             collidedWith: []      // 当前碰撞的娃娃索引列表
         };
 
@@ -61,7 +62,14 @@ window.PhysicsEngine = {
 
     // ==================== 获取娃娃物理对象 ====================
     getDollPhysics(id) {
-        return this.dolls[id] || null;
+        // 遍历查找 id 匹配的物理对象（因为 splice() 会导致索引偏移，不能用 this.dolls[id]）
+        for (let i = 0; i < this.dolls.length; i++) {
+            const d = this.dolls[i];
+            if (d && d.id === id) {
+                return d;
+            }
+        }
+        return null;
     },
 
     // ==================== 抛物线掉落（核心） ====================
@@ -154,7 +162,7 @@ window.PhysicsEngine = {
         dollPhysics.velocity.z *= (1.0 - airRes * deltaTime);
     },
 
-    // ==================== 仓壁碰撞检测 ====================
+    // ==================== 仓壁碰撞检测（含诊断日志） ====================
     checkCabinetCollision(dollPhysics) {
         const CONFIG = window.CONFIG;
         const halfWidth  = (CONFIG.CABINET_WIDTH  || 3.2) / 2;
@@ -240,6 +248,27 @@ window.PhysicsEngine = {
 
     // ==================== 地面碰撞检测 ====================
     checkGroundCollision(dollPhysics) {
+        // ==================== 诊断：【娃娃落地】全列表日志 ====================
+        if (!dollPhysics._groundLog) dollPhysics._groundLog = 0;
+        dollPhysics._groundLog++;
+        if (dollPhysics._groundLog === 1) {
+            // 只在第一次落地时输出，避免刷屏
+            window.log('[Physics][诊断][娃娃落地] dollPhysics.id=' + dollPhysics.id + ' index=' + dollPhysics.index);
+            window.log('[Physics][诊断][娃娃落地] DollManager.dolls 全列表:');
+            if (window.DollManager && window.DollManager.dolls) {
+                window.DollManager.dolls.forEach((d, i) => {
+                    window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : '?') + ' id=' + (d && d.userData ? d.userData.id : '?'));
+                });
+            }
+            if (window.Claw) {
+                window.log('[Physics][诊断][娃娃落地] Claw.releasedDolls 全列表:');
+                window.Claw.releasedDolls.forEach((d, i) => {
+                    window.log('  [' + i + '] name=' + (d && d.userData ? d.userData.name : 'NULL') + ' id=' + (d && d.userData ? d.userData.id : '?'));
+                });
+            }
+        }
+        // ================================================================
+
         const groundY = (window.CONFIG && window.CONFIG.GROUND_Y != null) ? window.CONFIG.GROUND_Y : 0.0;
         // 视觉中心在 dollPhysics.position.y
         // 视觉底部 = position.y - visualCenterY
@@ -282,7 +311,8 @@ window.PhysicsEngine = {
             }
             // 不在出口区内：执行原有反弹逻辑
             // 第一次落地时，立即通知 Claw 判分（不等反弹结束）
-            if (!dollPhysics.onGround && window.Claw && window.Claw.scoreDollOnLanding) {
+            // 只有被抓过的娃娃（isGrabbed=true）才能判分
+            if (dollPhysics.isGrabbed && !dollPhysics.onGround && window.Claw && window.Claw.scoreDollOnLanding) {
                 const removed = window.Claw.scoreDollOnLanding(dollPhysics);
                 if (removed) {
                     // 娃娃已被移除，跳过后续反弹逻辑
@@ -397,7 +427,9 @@ window.PhysicsEngine = {
         // 限制deltaTime，防止跳帧导致穿透
         const dt = Math.min(deltaTime, 0.033); // 最大33ms (30 FPS)
 
-        this.dolls.forEach(dollPhysics => {
+        // 先复制数组，避免遍历中 splice() 删除元素导致跳过后续娃娃
+        const dollsCopy = this.dolls.slice();
+        dollsCopy.forEach(dollPhysics => {
             // 跳过：无效娃娃、被抓取中、已移除、正在播放移除动画
             if (!dollPhysics || dollPhysics.state === 'grabbed' || dollPhysics._removed || dollPhysics._removing) {
                 return;

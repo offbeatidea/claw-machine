@@ -1,6 +1,151 @@
+## v3.3.2-build20260608e (2026-06-08)
+
+### Bug修复
+- 修复：finishRemoveDoll() 中引用已删除的 gIdx 变量（ReferenceError: gIdx is not defined）
+- 删除冗余的 gIdx 相关日志输出
+
+---
+
+## v3.3.2-build20260608d (2026-06-08)
+
+### ID串味修复（根因：splice() 导致索引偏移）
+- 修复：`getDollPhysics(id)` 改为遍历查找，不再依赖数组索引（解决 splice() 后 id 与索引不对应导致的【ID串味】问题）
+- 修复：`physics.js update()` 先 `slice()` 复制数组再遍历，避免遍历中 splice() 导致跳过后续娃娃
+- 新增：`physics.js registerDoll()` 增加 `isGrabbed: false` 属性（默认未被抓取过）
+- 新增：`claw.js onCollisionDetected()` 中设置 `physObj.isGrabbed = true`（标记娃娃已被抓取过）
+- 修复：`physics.js checkGroundCollision()` 增加 `isGrabbed` 检查，只有被抓过的娃娃才能判分（未被抓过的娃娃不判分）
+
+---
+
+## v3.3.2-build20260608d (2026-06-08)
+
+### ID串味修复（根因：splice() 导致索引偏移）
+- 修复：`getDollPhysics(id)` 改为遍历查找，不再依赖数组索引（解决 splice() 后 id 与索引不对应导致的【ID串味】问题）
+- 修复：`physics.js update()` 先 `slice()` 复制数组再遍历，避免遍历中 splice() 导致跳过后续娃娃
+- 新增：`physics.js registerDoll()` 增加 `isGrabbed: false` 属性（默认未被抓取过）
+- 新增：`claw.js onCollisionDetected()` 中设置 `physObj.isGrabbed = true`（标记娃娃已被抓取过）
+- 修复：`physics.js checkGroundCollision()` 增加 `isGrabbed` 检查，只有被抓过的娃娃才能判分（未被抓过的娃娃不判分）
+
+---
+
+## v3.3.2-build20260608d (2026-06-08)
+
+### ID串味修复（根因：splice() 导致索引偏移）
+- 修复： 改为遍历查找，不再依赖数组索引（解决 splice() 后 id 与索引不对应导致的【ID串味】问题）
+- 修复： 先  复制数组再遍历，避免遍历中 splice() 导致跳过后续娃娃
+- 新增： 增加  属性（默认未被抓取过）
+- 新增： 中设置 （标记娃娃已被抓取过）
+- 修复： 增加  检查，只有被抓过的娃娃才能判分
+
+---
+
+## v3.3.2-build20260608c (2026-06-08)
+
+### 日志与状态修复
+- 修复：[出口顶端松爪判断后] 日志时机错误（原在 releaseAllDolls() 之前，现移到之后，正确反映 releasedDolls 状态）
+- 修复：releaseAllDolls() 中重复调用 animateClawOpen()（已删除，updateReturning() 中已调用）
+- 修复：finishRemoveDoll() 中冗余的 gIdx 检查（已删除，娃娃此时已在 releasedDolls 中，gIdx 恒为 -1）
+
+### 文档更新
+- 更新 PRD/抓取流程与状态标记说明.md：
+  - 新增【各个娃娃列表的含义】表格（第四节）
+  - 新增【完整流程中的列表变化】章节（第五节，分阶段说明数组变化）
+
+---
+
 # 抓娃娃机版本历史
 
-## v3.3.2-build20260607f (2026-06-07)
+## v3.3.2-build20260608b (2026-06-08)
+
+### 诊断增强：多节点全列表日志 + 独立日志文件
+- 在以下关键节点输出 `releasedDolls`、`grabbedDolls`、`DollManager.dolls` 全列表：
+  - 【按下抓取按钮】`grab()` 开头
+  - 【抓到判断】`onCollisionDetected()` 开头
+  - 【强弱抓判断前】`judgeStrongGrab()` 开头
+  - 【强弱抓判断后】`judgeStrongGrab()` 结尾
+  - 【出口顶端松爪判断前】`updateReturning()` 到达出口上方时
+  - 【出口顶端松爪判断后】`releaseAllDolls()` 调用前
+  - 【娃娃落地】`checkGroundCollision()` 落地时
+  - 【得分前】`scoreDollOnLanding()` 开头
+  - 【得分后】`finishRemoveDoll()` 结尾
+- 在 `judgeStrongGrab()` 函数签名处添加注释：强/弱抓是爪子级别判定，不是每个娃娃单独判定
+- 新增独立日志文件下载功能：
+  - `utils.js`：新增 `window.debugLog = []` 数组，修改 `log()` 函数同时写入数组
+  - `utils.js`：新增 `window.downloadDebugLog()` 函数，将 `debugLog` 数组下载为 `.txt` 文件
+  - `main.js`：绑定 `Ctrl+Shift+D` 快捷键，触发日志下载
+  - `index.html`：新增隐藏按钮 `#downloadLogBtn`（点击也可触发下载）
+- 相关文档：`PRD/抓取流程与状态标记说明.md`（新建）
+
+---
+
+## v3.3.2-build20260608a (2026-06-08)
+
+### 日志清理
+- 删除 `physics.js` 中的周期性诊断日志（刷屏问题）
+  - `update()` 中的 `[update诊断]` 日志（每60帧输出）
+  - `checkCabinetCollision()` 中的 `[诊断]` 日志（每60帧输出）
+- 保留 `claw.js` 中的一次性诊断日志（`onCollisionDetected`/`judgeStrongGrab`/`finishRemoveDoll`）
+- 后续如需确认娃娃状态，日志只在4个时机输出一次：
+  - 【按下抓取时】
+  - 【抓取判断时】
+  - 【强弱抓判定时】
+  - 【娃娃落地时】
+
+---
+
+## v3.3.2-build20260607k (2026-06-07)
+
+### 诊断构建（待用户测试反馈）
+- 添加诊断日志，定位"抓到第一个娃娃后，再抓到后面的娃娃时，被抓中的娃娃没有跟随爪子"问题
+- 怀疑根因：`grabbedDolls` 列表引用错乱（移除娃娃后对应关系异常）
+- 诊断点：
+  - `onCollisionDetected()`：记录传入的娃娃 name/id/obj 引用
+  - `update()` 抓取娃娃跟随逻辑：每60帧输出 `grabbedDolls` 名单
+  - `judgeStrongGrab()`：记录赋值前后的 `grabbedDolls` 名单
+  - `finishRemoveDoll()`：记录从 `grabbedDolls` 移除的娃娃 name 和 `gIdx`
+- 待用户测试后根据日志确认根因
+
+---
+
+## v3.3.2-build20260607j (2026-06-07)
+
+### 修复
+- `updateReturning()` 到达出口上方时逻辑错误
+  - 根因：之前错误地在出口上方播放闭合动画（兜底逻辑）
+  - 修复：到达出口上方时立即调用 `animateClawOpen()` 张开爪子
+- 清理 `returnCloseAnimPlayed` 残留
+  - 删除变量定义（第44行）
+  - 删除 `resetPendulumState()` 中的重置逻辑
+
+---
+
+## v3.3.2-build20260607i (2026-06-07)
+
+### 修复
+- 抓取成功率超高（实际≈100%）
+  - 根因：`checkCollision()` 每帧重复掷骰子，同一娃娃在0.5s内被判定约30次
+  - 修复：添加 `grabAttempted` 标记，`grab()` 时清除，`checkCollision()` 中跳过已判定娃娃
+- 爪子闭合/张开时机错误
+  - 根因1：`onCollisionDetected()` 中抓到娃娃立即闭合（应在触底时闭合）
+  - 根因2：`judgeStrongGrab()` 中弱抓判定时立即张开（应在回到顶部释放时张开）
+  - 根因3：`updateReturning()` 中回到出口上方时重复播放闭合动画
+  - 修复：触底时（`onGrabComplete()`）才闭合，回到顶部释放时（`releaseAllDolls()`）才张开
+
+---
+
+### 修复
+- 爪子投影红圈（groundMarker）高度异常，悬在空中
+- 根因：`claw.js` 中 `GROUND_Y` 兜底值为 `0.5`，而实际地面高度为 `0.0`
+- 修复：两处 `(window.CONFIG.GROUND_Y || 0.5)` → `(window.CONFIG.GROUND_Y || 0.0)`
+
+---
+
+### 诊断
+- `checkCabinetCollision()` 增加关键参数诊断日志（每60帧输出：位置、速度、radius、边界值）
+- `update()` 增加物理更新入口诊断日志（确认每个娃娃的碰撞检测被执行）
+- 目的：定位娃娃 X/Z 方向穿墙的根因
+
+---
 
 ### 修复
 - 修复：删除 checkExitZone() 不限高度检测，解决爪子抓取娃娃时空中误判得分问题

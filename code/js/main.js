@@ -207,6 +207,14 @@ function setupEventListeners() {
 
     // 窗口缩放
     window.addEventListener('resize', onWindowResize);
+
+    // 调试：Ctrl+Shift+D 下载调试日志
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+            e.preventDefault();
+            if (window.downloadDebugLog) window.downloadDebugLog();
+        }
+    });
 }
 
 // ==================== 虚拟摇杆 ====================

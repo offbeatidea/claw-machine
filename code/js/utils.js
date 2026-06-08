@@ -45,6 +45,9 @@ function randomRange(min, max) {
 // 日志等级：0=无 1=错误 2=警告 3=信息 4=调试
 const LOG_LEVEL = { NONE: 0, ERROR: 1, WARN: 2, INFO: 3, DEBUG: 4 };
 
+// 全局调试日志数组（用于导出独立日志文件）
+window.debugLog = [];
+
 // 日志输出（支持等级）
 // 用法：log(level, module, message) 或兼容旧格式 log(message)
 function log(level, module, message) {
@@ -65,9 +68,33 @@ function log(level, module, message) {
 
     if (level <= currentLevel) {
         const prefix = level <= LOG_LEVEL.ERROR ? '❌' : level <= LOG_LEVEL.WARN ? '⚠️' : level <= LOG_LEVEL.INFO ? 'ℹ️' : '🔧';
-        console.log(`${prefix} [${module}] ${message}`);
+        const fullMsg = `${prefix} [${module}] ${message}`;
+        console.log(fullMsg);
+
+        // 同时保存到 debugLog 数组
+        const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        window.debugLog.push(`[${time}] ${fullMsg}`);
     }
 }
+
+// 下载调试日志为独立文件
+window.downloadDebugLog = function() {
+    if (!window.debugLog || window.debugLog.length === 0) {
+        console.log('[Utils] 暂无调试日志可下载');
+        return;
+    }
+    const content = window.debugLog.join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const now = new Date();
+    const ts = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
+    a.download = `claw_machine_debug_${ts}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    console.log('[Utils] 调试日志已下载，共 ' + window.debugLog.length + ' 条');
+};
 
 window.LOG_LEVEL = LOG_LEVEL;
 window.log = log;
